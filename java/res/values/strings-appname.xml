@@ -7,7 +7,7 @@
     <string name="spell_checker_service_name">FUTO Spell Checker</string>
 
     <!-- Title for Android Keyboard settings screen. "FUTO" should not be translated. -->
-    <string name="english_ime_settings">FUTO Keyboard Settings</string>
+    <string name="english_ime_settings">Ajustes de FMAboard</string>
 
     <!-- Title for the spell checking service settings screen. "FUTO" should not be translated. -->
     <string name="android_spell_checker_settings">FUTO Spell Checker Settings</string>

@@ -19,6 +19,11 @@ def getVersionCode = { ->
         project.logger.warn("VERSION_CODE env variable not set – falling back to git rev-list.")
     }
 
+    // FMAboard: its own version, set in gradle.properties (the fork has no FUTO history or tags)
+    if (project.hasProperty('fmaboardVersionCode')) {
+        return Integer.parseInt(project.property('fmaboardVersionCode').toString())
+    }
+
     try {
         def stdout = new ByteArrayOutputStream()
         exec {
@@ -38,6 +43,10 @@ def getVersionName = { ->
         return envName.trim()
     } else {
         project.logger.warn("VERSION_NAME env variable not set – falling back to git describe.")
+    }
+
+    if (project.hasProperty('fmaboardVersionName')) {
+        return project.property('fmaboardVersionName').toString()
     }
 
     try {
@@ -84,6 +93,8 @@ final def translationsWithoutEngValues = { final String path ->
     tasks.register("prepareResFilter${taskNameSuffix}", Copy) {
         from(sourceDir) {
             include 'values-*/**'
+            // FMAboard: the app is not called "FUTO Keyboard" in any language
+            exclude '**/strings-appname.xml'
 
             filter { String line ->
                 def matcher = line =~ /<string name="([^"]+)"[^>]*>(.+)<\/string>/
