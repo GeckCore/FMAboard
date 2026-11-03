@@ -17,4 +17,7 @@
     <string name="fmaboard_accessibility_description" translatable="false">Solo cuando abres \"Responder con mi estilo\" en el teclado, lee los mensajes visibles en pantalla para que las respuestas tengan en cuenta la conversación. No hace nada en segundo plano ni guarda lo que lee. El texto leído se envía a un modelo gratuito de OpenRouter para generar las respuestas.</string>
     <string name="fmaboard_ocr_title" translatable="false">Texto de imagen</string>
     <string name="fmaboard_download_title" translatable="false">Descargar enlace</string>
+    <string name="fmaboard_voice_title" translatable="false">Mensaje de voz</string>
+    <string name="fmaboard_voice_delete" translatable="false">Borrar la voz descargada</string>
+    <string name="fmaboard_voice_delete_subtitle" translatable="false">Libera el espacio del modelo de voz de \"Mensaje de voz\". Se puede volver a descargar.</string>
 </resources>

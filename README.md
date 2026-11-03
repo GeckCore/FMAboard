@@ -14,6 +14,8 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - **Autocorrector personal**: aprende de las correcciones que deshaces o haces tú.
 - **Texto de imagen**: copia texto de una foto o captura sin conexión; reconoce código y conserva la sangría. Con IA es opcional.
 - **Descargar enlace**: descarga un vídeo o su audio desde un enlace y lo envía al chat.
+- **Mensaje de voz**: convierte lo que escribes en un audio con voz natural (Dora o Alex) y lo envía al chat.
+  La voz se genera en el móvil, gratis y sin conexión; la primera vez se descarga (142 MB).
 - **Notas en el portapapeles**, con búsqueda que ignora tildes.
 - **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/): reescribir, responder con tu estilo y pulir el dictado.
 - **Registro de escritura** (JSONL en el propio móvil) para entrenar un modelo de predicción personal (`lm/`). Esquema: [SCHEMA.md](java/src/org/futo/inputmethod/latin/fmaboard/SCHEMA.md).
@@ -54,6 +56,11 @@ Modelos incluidos en la APK (se descargan al compilar desde la release
 [models-v1](https://github.com/GeckCore/FMAboard/releases/tag/models-v1)):
 el modelo de predicción `es_typing_Q6_K.gguf` de futo-keyboard-polyglot (MIT), el diccionario español
 de AOSP (Apache-2.0) distribuido por FUTO, y el modelo de voz multilingüe de FUTO Voice Input (basado en Whisper, MIT).
+
+Mensaje de voz: [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0), en la versión int8 de
+[sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Apache-2.0), que lo ejecuta en el móvil con ONNX Runtime (MIT).
+El modelo no va en la APK: se descarga al usarlo por primera vez. La conversión de texto a fonemas
+(`SpanishPhonemizer.java`) es propia, para no depender de espeak-ng.
 
 ---
 

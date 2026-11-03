@@ -74,3 +74,6 @@
 -keep class com.fasterxml.jackson.** { *; }
 -dontwarn org.apache.commons.compress.**
 -dontwarn com.fasterxml.jackson.**
+# FMAboard: "Mensaje de voz" (sherpa-onnx). Its native code reads these classes' fields by name.
+-keep class com.k2fsa.sherpa.onnx.** { *; }
+-keep class org.futo.inputmethod.latin.fmaboard.StopCallback { *; }

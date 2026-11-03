@@ -11,6 +11,7 @@ import org.futo.inputmethod.latin.fmaboard.AiReplyAction
 import org.futo.inputmethod.latin.fmaboard.AiRewriteAction
 import org.futo.inputmethod.latin.fmaboard.LinkDownloadAction
 import org.futo.inputmethod.latin.fmaboard.OcrAction
+import org.futo.inputmethod.latin.fmaboard.VoiceMessageAction
 import org.futo.inputmethod.latin.common.Constants
 import org.futo.inputmethod.latin.settings.Settings
 import org.futo.inputmethod.latin.uix.Action
@@ -51,6 +52,7 @@ val AllActionsMap = mapOf(
     "ai_reply" to AiReplyAction,
     "ocr" to OcrAction,
     "download" to LinkDownloadAction,
+    "voice_message" to VoiceMessageAction,
 )
 
 val ActionToId = AllActionsMap.entries.associate { it.value to it.key }

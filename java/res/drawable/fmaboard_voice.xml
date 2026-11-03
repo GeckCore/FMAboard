@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- speech bubble with a sound wave: "mensaje de voz" -->
+  <path
+      android:pathData="M4,5h16a1,1 0,0 1,1 1v10a1,1 0,0 1,-1 1h-9l-4,3v-3h-3a1,1 0,0 1,-1 -1v-10a1,1 0,0 1,1 -1z"
+      android:strokeLineJoin="round"
+      android:strokeWidth="2"
+      android:fillColor="#00000000"
+      android:strokeColor="#ffffff"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M8,10v2M11,8.5v5M14,9.5v3M17,10.5v1"
+      android:strokeWidth="2"
+      android:fillColor="#00000000"
+      android:strokeColor="#ffffff"
+      android:strokeLineCap="round"/>
+</vector>

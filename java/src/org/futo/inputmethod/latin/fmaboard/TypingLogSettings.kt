@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.uix.PreferenceUtils
@@ -224,5 +225,32 @@ val TypingLogMenu = UserSettingsMenu(
             key = AiDictation.PREF_ENABLED,
             default = { AiDictation.DEFAULT_ENABLED }
         ),
+
+        userSettingDecorationOnly {
+            Tip("Mensaje de voz (menú de acciones): convierte lo que escribes en un audio con voz natural (Dora o Alex) y lo envía a la app en la que estás. La voz se genera en el móvil, sin internet; la primera vez se descarga (${VoiceMessage.downloadBytes / 1_000_000} MB).")
+        },
+
+        userSettingNavigationItem(
+            title = R.string.fmaboard_voice_delete,
+            subtitle = R.string.fmaboard_voice_delete_subtitle,
+            style = NavigationItemStyle.MiscNoArrow,
+            navigate = { nav -> confirmDeleteVoice(nav.context) }
+        ),
     )
 )
+
+private fun confirmDeleteVoice(context: Context) {
+    val size = VoiceMessage.installedBytes(context)
+    if (size == 0L) {
+        android.widget.Toast.makeText(context, "No hay ninguna voz descargada", android.widget.Toast.LENGTH_SHORT).show()
+        return
+    }
+    AlertDialog.Builder(findActivity(context) ?: context)
+        .setTitle(R.string.fmaboard_voice_delete)
+        .setMessage("Se liberarán ${size / 1_000_000} MB. La próxima vez que uses \"Mensaje de voz\" se descargará otra vez.")
+        .setPositiveButton("Borrar") { _, _ ->
+            kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch { VoiceMessage.deleteModel(context) }
+        }
+        .setNegativeButton(android.R.string.cancel, null)
+        .show()
+}

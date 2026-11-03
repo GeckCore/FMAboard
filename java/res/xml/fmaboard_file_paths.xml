@@ -4,4 +4,6 @@
     <cache-path name="ocr" path="ocr/" />
     <!-- FMAboard: videos/audio downloaded from a link, before sending or saving -->
     <cache-path name="downloads" path="downloads/" />
+    <!-- FMAboard: voice messages made from text, before sending -->
+    <cache-path name="voice" path="voice/" />
 </paths>

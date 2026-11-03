@@ -123,6 +123,22 @@ tasks.register('downloadFmaboardModels') {
 }
 preBuild.dependsOn downloadFmaboardModels
 
+// FMAboard: sherpa-onnx (Apache 2.0) runs the "Mensaje de voz" voice. Its AAR is fetched from the
+// official release when missing, checked, and kept in the build folder (never committed).
+final def sherpaOnnxAar = file("$buildDir/fmaboard-libs/sherpa-onnx-2.0.1.aar")
+final def sherpaOnnxSha = 'a8d09d1d32f3eb8520482c6d3d43fae674681c5b050385967c70a3c2c9bf0ee7'
+if (!sherpaOnnxAar.isFile() || sha256Of(sherpaOnnxAar) != sherpaOnnxSha) {
+    sherpaOnnxAar.parentFile.mkdirs()
+    project.logger.lifecycle("Downloading sherpa-onnx-2.0.1.aar")
+    def part = new File(sherpaOnnxAar.parentFile, sherpaOnnxAar.name + '.part')
+    new URL('https://github.com/k2-fsa/sherpa-onnx/releases/download/v2.0.1/sherpa-onnx-2.0.1.aar').withInputStream { input ->
+        part.withOutputStream { it << input }
+    }
+    if (sha256Of(part) != sherpaOnnxSha) throw new GradleException('Wrong checksum for sherpa-onnx-2.0.1.aar')
+    sherpaOnnxAar.delete()
+    part.renameTo(sherpaOnnxAar)
+}
+
 final def translationsWithoutEngValues = { final String path ->
     final def sourceDir = file(path)
     final def taskNameSuffix = sourceDir.name.capitalize()
@@ -517,6 +533,9 @@ dependencies {
     // End for RIME
 
     implementation files('libs/futo-swipe-release.aar')
+
+    // FMAboard: on-device text to speech for "Mensaje de voz" (see sherpaOnnxAar above)
+    implementation files(sherpaOnnxAar)
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
