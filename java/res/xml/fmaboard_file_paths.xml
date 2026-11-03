@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FMAboard: photos taken for "Texto de imagen" (OCR) -->
+<paths>
+    <cache-path name="ocr" path="ocr/" />
+    <!-- FMAboard: videos/audio downloaded from a link, before sending or saving -->
+    <cache-path name="downloads" path="downloads/" />
+</paths>

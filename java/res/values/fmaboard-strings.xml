@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FMAboard additions. Not part of upstream FUTO Keyboard. -->
+<resources>
+    <string name="fmaboard_title" translatable="false">FMAboard · Registro de escritura</string>
+    <string name="fmaboard_enabled" translatable="false">Registrar cómo escribo</string>
+    <string name="fmaboard_enabled_subtitle" translatable="false">Guarda pulsaciones, toques y texto en este móvil (JSONL por día). Nunca sale del dispositivo salvo que lo exportes.</string>
+    <string name="fmaboard_export" translatable="false">Exportar datos</string>
+    <string name="fmaboard_export_subtitle" translatable="false">Guarda un .zip con todos los archivos JSONL</string>
+    <string name="fmaboard_delete" translatable="false">Borrar todos los datos</string>
+    <string name="fmaboard_delete_subtitle" translatable="false">Elimina permanentemente el registro de este móvil</string>
+    <string name="fmaboard_rewrite_title" translatable="false">Reescribir con IA</string>
+    <string name="fmaboard_ai_dictation" translatable="false">Pulir dictado con IA</string>
+    <string name="fmaboard_ai_dictation_subtitle" translatable="false">Tras dictar por voz, unos segundos después pone puntuación, quita los \"eh\" y corrige lo mal oído, con tu estilo. El texto dictado se envía a un modelo gratuito de OpenRouter.</string>
+    <string name="fmaboard_autocorrect_clear" translatable="false">Olvidar autocorrector personal</string>
+    <string name="fmaboard_reply_title" translatable="false">Responder con mi estilo</string>
+    <string name="fmaboard_accessibility_label" translatable="false">FMAboard: contexto para responder</string>
+    <string name="fmaboard_accessibility_description" translatable="false">Solo cuando abres \"Responder con mi estilo\" en el teclado, lee los mensajes visibles en pantalla para que las respuestas tengan en cuenta la conversación. No hace nada en segundo plano ni guarda lo que lee. El texto leído se envía a un modelo gratuito de OpenRouter para generar las respuestas.</string>
+    <string name="fmaboard_ocr_title" translatable="false">Texto de imagen</string>
+    <string name="fmaboard_download_title" translatable="false">Descargar enlace</string>
+</resources>
