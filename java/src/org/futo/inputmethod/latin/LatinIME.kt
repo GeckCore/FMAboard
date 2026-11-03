@@ -61,6 +61,7 @@ import org.futo.inputmethod.engine.IMEManager
 import org.futo.inputmethod.engine.general.WordLearner
 import org.futo.inputmethod.keyboard.KeyboardSwitcher
 import org.futo.inputmethod.latin.SuggestedWords.SuggestedWordInfo
+import org.futo.inputmethod.latin.fmaboard.BundledModels
 import org.futo.inputmethod.latin.fmaboard.LinkSend
 import org.futo.inputmethod.latin.fmaboard.OcrCapture
 import org.futo.inputmethod.latin.fmaboard.PersonalAutocorrect
@@ -644,6 +645,8 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         val keyboard = KeyboardSwitcher.getInstance().keyboard
         PersonalAutocorrect.onStartField(info, packageName)
         PhraseMemory.onStartField(info, packageName)
+        // Also catches Spanish added later in settings; a cheap check once it is done
+        BundledModels.installIfNeeded(this)
         TypingLog.onStartField(
             info, packageName,
             if (TypingLog.exclusionReason(info, packageName) == null)

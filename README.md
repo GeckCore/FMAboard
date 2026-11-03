@@ -32,6 +32,9 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 2. Abre FMAboard y sigue los pasos para activarlo como teclado.
 3. Para la IA (opcional), crea una clave gratuita en OpenRouter y pégala en *Ajustes → FMAboard*.
 
+El español viene listo: la APK incluye el diccionario, el modelo de predicción y el de dictado por voz,
+y se configuran solos la primera vez que usas el teclado con español. Lo que ya hubieras importado no se toca.
+
 La APK de prueba está firmada con la clave de desarrollo pública de FUTO (`java/shared.keystore`), por lo que solo sirve para probar.
 
 ## Compilar
@@ -46,6 +49,11 @@ git clone --recursive https://github.com/GeckCore/FMAboard.git
 Créditos: el parche de pulsaciones Unicode (`lm/external/0001-unicode-keystrokes.patch`) viene de
 [futo-keyboard-polyglot](https://github.com/erickgtzh/futo-keyboard-polyglot), basado en stamchry/android-keyboard;
 el entrenamiento del modelo (`lm/`) parte de [futo-keyboard-ptbr](https://github.com/barddoo/futo-keyboard-ptbr).
+
+Modelos incluidos en la APK (se descargan al compilar desde la release
+[models-v1](https://github.com/GeckCore/FMAboard/releases/tag/models-v1)):
+el modelo de predicción `es_typing_Q6_K.gguf` de futo-keyboard-polyglot (MIT), el diccionario español
+de AOSP (Apache-2.0) distribuido por FUTO, y el modelo de voz multilingüe de FUTO Voice Input (basado en Whisper, MIT).
 
 ---
 

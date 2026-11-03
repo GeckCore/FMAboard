@@ -84,6 +84,45 @@ def getBranch = { ->
 }
 
 
+// FMAboard: Spanish models bundled in the APK, so Spanish works without importing anything.
+// They are downloaded at build time from the models-v1 release (never committed) and checked.
+final def fmaboardModelsDir = file("$buildDir/generated/fmaboard-assets")
+final def fmaboardModels = [
+        'es_typing_Q6_K.gguf'            : '340cddcf0673b7a7959662d28c49d839e446a6c5d6bbc9d6a93d23a8a50cd4fd',
+        'main_es.dict'                   : '44a048bdb352b7b3f3d07a86ad1fb1692052b5a7838a57bc39caaae6181fcbad',
+        'voice-input-multilingual-74.bin': 'e44f352c9aa2c3609dece20c733c4ad4a75c28cd9ab07d005383df55fa96efc4',
+]
+final def sha256Of = { File f ->
+    def digest = java.security.MessageDigest.getInstance('SHA-256')
+    f.withInputStream { input ->
+        def buffer = new byte[1 << 16]
+        int n
+        while ((n = input.read(buffer)) > 0) digest.update(buffer, 0, n)
+    }
+    return digest.digest().encodeHex().toString()
+}
+
+tasks.register('downloadFmaboardModels') {
+    outputs.dir(fmaboardModelsDir)
+    doLast {
+        def dir = new File(fmaboardModelsDir, 'fmaboard')
+        dir.mkdirs()
+        fmaboardModels.each { name, sha ->
+            def target = new File(dir, name)
+            if (target.isFile() && sha256Of(target) == sha) return
+            project.logger.lifecycle("Downloading $name")
+            def part = new File(dir, "${name}.part")
+            new URL("https://github.com/GeckCore/FMAboard/releases/download/models-v1/$name").withInputStream { input ->
+                part.withOutputStream { it << input }
+            }
+            if (sha256Of(part) != sha) throw new GradleException("Wrong checksum for $name")
+            target.delete()
+            part.renameTo(target)
+        }
+    }
+}
+preBuild.dependsOn downloadFmaboardModels
+
 final def translationsWithoutEngValues = { final String path ->
     final def sourceDir = file(path)
     final def taskNameSuffix = sourceDir.name.capitalize()
@@ -353,7 +392,7 @@ android {
             ]
             java.srcDirs = ['common/src', 'java/src']
             manifest.srcFile 'java/AndroidManifest.xml'
-            assets.srcDirs = ['java/assets']
+            assets.srcDirs = ['java/assets', fmaboardModelsDir]
         }
 
         playstore {
@@ -385,7 +424,7 @@ android {
     }
 
     aaptOptions {
-        noCompress 'dict'
+        noCompress 'dict', 'gguf', 'bin'
     }
 
     packagingOptions {
