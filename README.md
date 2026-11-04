@@ -19,7 +19,7 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - **Crear sticker**: convierte una foto, vídeo o GIF en sticker de WhatsApp (también animado), con recorte
   a mano o en rectángulo, quitar fondo (en el móvil), borde blanco, forma y texto. Desde *Compartir*,
   «Sticker al momento» lo convierte tal cual. Los estilos de fuente también se envían como sticker.
-- **Portapapeles mejorado**: notas propias, búsqueda que ignora tildes, capturas de pantalla e imágenes
+- **Portapapeles mejorado**: notas propias, búsqueda que ignora tildes, borrar varios clips a la vez, capturas de pantalla e imágenes
   (pegar, sacar texto o hacer sticker), abrir enlaces, quitarles el rastreo (`utm_`, `fbclid`, `si`…)
   y abrir un chat de WhatsApp con un número sin guardarlo en contactos.
 - **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/): reescribir, responder con tu estilo y pulir el dictado.

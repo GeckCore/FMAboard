@@ -54,6 +54,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -284,7 +289,7 @@ object ClipboardThumbCache {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ClipboardEntryView(modifier: Modifier, clipboardEntry: ClipboardEntry, onPaste: (ClipboardEntry) -> Unit, onRemove: (ClipboardEntry) -> Unit, onPin: (ClipboardEntry) -> Unit, bitmapOverride: ImageBitmap? = null, onOpen: ((ClipboardEntry) -> Unit)? = null) {
+fun ClipboardEntryView(modifier: Modifier, clipboardEntry: ClipboardEntry, onPaste: (ClipboardEntry) -> Unit, onRemove: (ClipboardEntry) -> Unit, onPin: (ClipboardEntry) -> Unit, bitmapOverride: ImageBitmap? = null, onOpen: ((ClipboardEntry) -> Unit)? = null, selected: Boolean? = null) {
     val context = LocalContext.current
 
     val bitmap = remember(clipboardEntry) {
@@ -319,7 +324,9 @@ fun ClipboardEntryView(modifier: Modifier, clipboardEntry: ClipboardEntry, onPas
             onClick = { onPaste(clipboardEntry) },
             // FMAboard: long press opens a text clip to pick a sentence or edit it
             onLongClick = {
-                if(onOpen != null && (clipboardEntry.text != null || clipboardEntry.backingFile != null)) onOpen(clipboardEntry) else onPin(clipboardEntry)
+                // FMAboard: while selecting, a tap or a long press both toggle the clip
+                if(selected != null) onPaste(clipboardEntry)
+                else if(onOpen != null && (clipboardEntry.text != null || clipboardEntry.backingFile != null)) onOpen(clipboardEntry) else onPin(clipboardEntry)
             }
         ).let {
             if(bitmap != null) {
@@ -371,12 +378,28 @@ fun ClipboardEntryView(modifier: Modifier, clipboardEntry: ClipboardEntry, onPas
 
     Surface(
         color = if(bitmap != null) Color.Transparent else color,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = if(selected == true) BorderStroke(3.dp, MaterialTheme.colorScheme.primary)
+            else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = mainModifier,
         shape = shape,
     ) {
         Column {
-            Row(modifier = Modifier.padding(0.dp)) {
+            if(selected != null) Row(modifier = Modifier.padding(0.dp)) {
+                Spacer(modifier = Modifier.weight(1.0f))
+                Box(modifier = Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                    if(selected) {
+                        Icon(
+                            painterResource(id = R.drawable.check_circle),
+                            contentDescription = "Elegido",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    } else {
+                        Box(modifier = Modifier.size(18.dp).border(
+                            BorderStroke(2.dp, contentColorFor(color).copy(alpha = 0.5f)), CircleShape))
+                    }
+                }
+            } else Row(modifier = Modifier.padding(0.dp)) {
                 IconButton(onClick = {
                     onPin(clipboardEntry)
                 }, modifier = Modifier.size(32.dp)) {
@@ -1020,6 +1043,25 @@ ${if(clipboardFileSwap.exists()) { clipboardFileSwap.readText() } else { "File d
         saveClipboard()
     }
 
+    // FMAboard: removes several clips at once and saves only once
+    fun onRemoveAll(items: Collection<ClipboardEntry>) {
+        if(items.isEmpty()) return
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                val current = clipboardManager.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString()
+                if(current != null && items.any { it.text != null && it.text == current }) {
+                    clipboardManager.clearPrimaryClip()
+                    QuickClip.markQuickClipDismissed()
+                }
+            } catch(e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        val set = items.toHashSet()
+        clipboardHistory.removeAll { it in set }
+        saveClipboard()
+    }
+
     // FMAboard: notes written by hand are pinned, so they are never pruned
     fun addNote(text: String) {
         clipboardHistory.removeAll { it.text != null && it.text == text }
@@ -1086,11 +1128,30 @@ val ClipboardHistoryAction = Action(
         val noteTarget = mutableStateOf<ClipboardEntry?>(null)
         val openedEntry = mutableStateOf<ClipboardEntry?>(null)
         val onlyPinned = mutableStateOf(false)
+        // FMAboard: picking several clips to delete them together
+        val selecting = mutableStateOf(false)
+        val selected = mutableStateListOf<ClipboardEntry>()
         val unlocked = !manager.isDeviceLocked()
         val clipboardHistoryManager = persistent as ClipboardHistoryManager
 
         manager.getLifecycleScope().launch { clipboardHistoryManager.pruneOldItems() }
         object : ActionWindow() {
+            /** The clips the list shows right now (filter chips and search applied). */
+            fun visibleClips(): List<ClipboardEntry> {
+                val query = searchText.value
+                return clipboardHistoryManager.clipboardHistory.filter {
+                    if(!searching.value) return@filter !onlyPinned.value || it.pinned
+                    // FMAboard: ignores accents and word order
+                    ClipboardNotes.matches(it.text, query)
+                            || it.mimeTypes.any { mime -> mime.contains(query, ignoreCase = true) }
+                }
+            }
+
+            fun stopSelecting() {
+                selecting.value = false
+                selected.clear()
+            }
+
             @Composable
             override fun windowName(): String {
                 return stringResource(R.string.action_clipboard_manager_title)
@@ -1118,9 +1179,62 @@ val ClipboardHistoryAction = Action(
                     )
                     return
                 }
+                if(selecting.value) {
+                    val res = LocalResources.current
+                    IconButton(onClick = { stopSelecting() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                    // Forget picks that left the list meanwhile (pinned, edited or pruned)
+                    LaunchedEffect(clipboardHistoryManager.clipboardHistory.toList()) {
+                        selected.retainAll(clipboardHistoryManager.clipboardHistory.toSet())
+                    }
+                    Text(
+                        when(selected.size) { 0 -> "Toca para elegir"; 1 -> "1 elegido"; else -> "${selected.size} elegidos" },
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
+                    Spacer(modifier = Modifier.weight(1.0f))
+                    val visible = visibleClips()
+                    val allPicked = visible.isNotEmpty() && visible.all { it in selected }
+                    TextButton(onClick = {
+                        if(allPicked) selected.removeAll(visible.toSet())
+                        else visible.forEach { if(it !in selected) selected.add(it) }
+                    }, modifier = Modifier.align(Alignment.CenterVertically)) {
+                        Text(if(allPicked) "Ninguno" else "Todos")
+                    }
+                    IconButton(enabled = selected.isNotEmpty(), onClick = {
+                        val picked = selected.toList()
+                        val pinned = picked.count { it.pinned }
+                        val what = if(picked.size == 1) "este elemento" else "estos ${picked.size} elementos"
+                        val extra = when {
+                            pinned == 1 -> " Incluye 1 fijado o nota."
+                            pinned > 1 -> " Incluye $pinned fijados o notas."
+                            else -> ""
+                        }
+                        manager.requestDialog(
+                            "¿Borrar $what del portapapeles?$extra",
+                            listOf(
+                                DialogRequestItem(res.getString(R.string.action_clipboard_manager_cancel_action_button)) {},
+                                DialogRequestItem("Borrar") {
+                                    clipboardHistoryManager.onRemoveAll(picked)
+                                    stopSelecting()
+                                },
+                            ),
+                            {}
+                        )
+                    }) {
+                        Icon(painterResource(id = R.drawable.trash), contentDescription = "Borrar los elegidos")
+                    }
+                    return
+                }
                 if(searching.value) {
                     ActionHeaderSearch(searchText, Modifier.weight(1.0f),
                         placeholder = stringResource(R.string.action_clipboard_manager_enter_your_search))
+                    // FMAboard: pick some of the results to delete them together
+                    if(searchText.value.isNotBlank()) {
+                        IconButton(onClick = { selected.clear(); selecting.value = true }) {
+                            Icon(painterResource(id = R.drawable.check_circle), contentDescription = "Elegir varios")
+                        }
+                    }
                     return
                 }
 
@@ -1140,6 +1254,11 @@ val ClipboardHistoryAction = Action(
                         noteText.value = ""
                     }) {
                         Icon(Icons.Default.Add, contentDescription = "Nueva nota")
+                    }
+                    if(clipboardHistoryManager.clipboardHistory.size > 1) {
+                        IconButton(onClick = { selected.clear(); selecting.value = true }) {
+                            Icon(painterResource(id = R.drawable.check_circle), contentDescription = "Elegir varios")
+                        }
                     }
                     IconButton(onClick = {
                         searching.value = true
@@ -1360,7 +1479,7 @@ val ClipboardHistoryAction = Action(
                         // FMAboard: screenshots in the clipboard are off by default; offer them once
                         val saveScreenshots = useDataStoreValue(ClipboardSaveScreenshots)
                         val (offerDismissed, setOfferDismissed) = useDataStore(ClipboardScreenshotOfferDismissed)
-                        if(!searching.value && SupportsAddingScreenshots && !offerDismissed
+                        if(!searching.value && !selecting.value && SupportsAddingScreenshots && !offerDismissed
                             && !(saveScreenshots && ScreenshotClips.hasPermission(context))) {
                             ScreenshotOffer(
                                 onEnable = {
@@ -1384,17 +1503,7 @@ val ClipboardHistoryAction = Action(
 
                         val showPinnedOnTop = useDataStoreValue(ClipboardShowPinnedOnTop)
                         val clipboardList = run {
-                            val filtered = clipboardHistoryManager.clipboardHistory.filter {
-                                if(!searching.value) return@filter !onlyPinned.value || it.pinned
-                                // FMAboard: ignores accents and word order
-                                ClipboardNotes.matches(it.text, searchQuery)
-                                        || it.mimeTypes.any { mime ->
-                                    mime.contains(
-                                        searchQuery,
-                                        ignoreCase = true
-                                    )
-                                }
-                            }
+                            val filtered = visibleClips()
 
                             val sorted = when {
                                 showPinnedOnTop -> filtered.sortedBy { it.pinned }
@@ -1447,6 +1556,19 @@ val ClipboardHistoryAction = Action(
                             }) { r_i ->
                                 val i = clipboardList.size - r_i - 1
                                 val entry = clipboardList[i]
+                                if(selecting.value) {
+                                    ClipboardEntryView(
+                                        modifier = Modifier.animateItem(),
+                                        clipboardEntry = entry,
+                                        onPaste = {
+                                            if(it in selected) selected.remove(it) else selected.add(it)
+                                            manager.performHapticAndAudioFeedback(Constants.CODE_TAB, view)
+                                        },
+                                        onRemove = {}, onPin = {},
+                                        selected = entry in selected
+                                    )
+                                    return@items
+                                }
                                 ClipboardEntryView(
                                     modifier = Modifier.animateItem(),
                                     clipboardEntry = entry, onPaste = {
