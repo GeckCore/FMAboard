@@ -177,7 +177,7 @@ class SettingsActivity : ComponentActivity(), DynamicThemeProviderOwner {
         setContent {
             DataStoreCacheProvider {
                 SharedPrefsCacheProvider {
-                    UixThemeAuto {
+                    UixThemeAuto { IosSettingsTheme { // FMAboard: iPhone-like settings look
                         Surface(
                             modifier = Modifier
                                 .fillMaxSize(),
@@ -193,7 +193,7 @@ class SettingsActivity : ComponentActivity(), DynamicThemeProviderOwner {
                                 }
                             }
                         }
-                    }
+                    } }
                 }
             }
         }

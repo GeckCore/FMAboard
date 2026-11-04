@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FMAboard: Spanish texts that name the app. The translations of these names are left out at build time (build.gradle). -->
+<resources>
+    <string name="setup_welcome_text">¡Te damos la bienvenida a FMAboard! Un teclado gratuito y privado, pensado para escribir en español y basado en FUTO Keyboard. Aprende cómo escribes, solo en tu móvil.\n\nPara empezar, activa FMAboard como teclado.</string>
+    <string name="setup_active_input_method">Elige FMAboard como teclado activo.</string>
+    <string name="credits_menu_header_text">¡Gracias a FUTO y a todas estas personas por hacer posible FMAboard!</string>
+    <string name="crashed_text">FMAboard se ha cerrado por un error. Envía el informe para ayudar a arreglarlo.</string>
+    <string name="help_menu_version_tip">¿Algo no va bien? Cuéntalo en GitHub e indica tu versión: v%1$s</string>
+    <string name="resource_importer_warning_cfg_backup_newer_version">Esta copia de los ajustes se hizo con una versión más nueva de FMAboard y puede que no se importe bien. Actualiza FMAboard primero.</string>
+    <string name="theme_settings_warning_newer_version">Puede que este tema necesite una versión más nueva de FMAboard. Si creas temas, mira el registro de errores de abajo.</string>
+    <!-- Not translated upstream -->
+    <string name="swipe_settings_title">Escritura deslizante</string>
+    <string name="swipe_settings_enable_swipe_typing">Deslizar para escribir</string>
+</resources>

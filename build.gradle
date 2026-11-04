@@ -152,6 +152,10 @@ final def translationsWithoutEngValues = { final String path ->
             exclude '**/strings-appname.xml'
 
             filter { String line ->
+                // FMAboard: strings that name the app are ours (java/res/values and values-es)
+                if (line =~ /<string name="(setup_welcome_text|setup_active_input_method|credits_menu_header_text|crashed_text|help_menu_version_tip|resource_importer_warning_cfg_backup_newer_version|theme_settings_warning_newer_version)"/) {
+                    return null
+                }
                 def matcher = line =~ /<string name="([^"]+)"[^>]*>(.+)<\/string>/
 
                 if (matcher.find()) {

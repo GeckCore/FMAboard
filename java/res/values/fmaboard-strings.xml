@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- FMAboard additions. Not part of upstream FUTO Keyboard. -->
 <resources>
-    <string name="fmaboard_title" translatable="false">FMAboard · Registro de escritura</string>
-    <string name="fmaboard_enabled" translatable="false">Registrar cómo escribo</string>
-    <string name="fmaboard_enabled_subtitle" translatable="false">Guarda pulsaciones, toques y texto en este móvil (JSONL por día). Nunca sale del dispositivo salvo que lo exportes.</string>
-    <string name="fmaboard_export" translatable="false">Exportar datos</string>
-    <string name="fmaboard_export_subtitle" translatable="false">Guarda un .zip con todos los archivos JSONL</string>
-    <string name="fmaboard_delete" translatable="false">Borrar todos los datos</string>
-    <string name="fmaboard_delete_subtitle" translatable="false">Elimina permanentemente el registro de este móvil</string>
+    <string name="fmaboard_title" translatable="false">Aprendizaje y privacidad</string>
+    <string name="fmaboard_enabled" translatable="false">Aprender de cómo escribo</string>
+    <string name="fmaboard_enabled_subtitle" translatable="false">Guarda lo que escribes solo en este móvil para aprender tus palabras, tus frases y tu estilo. Nunca se envía a internet.</string>
+    <string name="fmaboard_export" translatable="false">Exportar lo aprendido</string>
+    <string name="fmaboard_export_subtitle" translatable="false">Guarda un archivo .zip con todo, por ejemplo para pasarlo a otro móvil</string>
+    <string name="fmaboard_delete" translatable="false">Borrar lo que ha guardado</string>
+    <string name="fmaboard_delete_subtitle" translatable="false">Elimina para siempre todo lo que ha guardado de tu escritura</string>
     <string name="fmaboard_rewrite_title" translatable="false">Reescribir con IA</string>
     <string name="fmaboard_ai_dictation" translatable="false">Pulir dictado con IA</string>
-    <string name="fmaboard_ai_dictation_subtitle" translatable="false">Tras dictar por voz, unos segundos después pone puntuación, quita los \"eh\" y corrige lo mal oído, con tu estilo. El texto dictado se envía a un modelo gratuito (OpenRouter o Gemini).</string>
+    <string name="fmaboard_ai_dictation_subtitle" translatable="false">Después de dictar por voz, pone la puntuación, quita los \"eh\" y corrige lo mal oído, con tu estilo. El texto dictado se envía a la IA que elijas.</string>
     <string name="fmaboard_autocorrect_clear" translatable="false">Olvidar autocorrector personal</string>
     <string name="fmaboard_reply_title" translatable="false">Responder con mi estilo</string>
     <string name="fmaboard_accessibility_label" translatable="false">FMAboard: contexto para responder</string>
@@ -22,4 +22,32 @@
     <string name="fmaboard_sticker_quick_title" translatable="false">Sticker al momento</string>
     <string name="fmaboard_voice_delete" translatable="false">Borrar la voz descargada</string>
     <string name="fmaboard_voice_delete_subtitle" translatable="false">Libera el espacio del modelo de voz de \"Mensaje de voz\". Se puede volver a descargar.</string>
+    <string name="fmaboard_ai_title" translatable="false">Inteligencia artificial</string>
+    <string name="fmaboard_ai_search_tags" translatable="false">IA, Gemini, OpenRouter, clave, API, reescribir, responder</string>
+    <string name="fmaboard_ai_get_gemini" translatable="false">Conseguir clave gratis de Gemini</string>
+    <string name="fmaboard_ai_get_gemini_subtitle" translatable="false">Abre Google AI Studio. No actives la facturación y nunca te cobrarán.</string>
+    <string name="fmaboard_ai_get_openrouter" translatable="false">Conseguir clave gratis de OpenRouter</string>
+    <string name="fmaboard_ai_get_openrouter_subtitle" translatable="false">Crea una cuenta y pulsa «Create Key». FMAboard solo usa sus modelos gratuitos.</string>
+    <string name="fmaboard_ai_accessibility" translatable="false">Dejar que lea la conversación (opcional)</string>
+    <string name="fmaboard_ai_accessibility_subtitle" translatable="false">Para que «Responder con mi estilo» vea los mensajes del chat, activa «FMAboard: contexto para responder» en Accesibilidad. Solo lee la pantalla cuando lo abres.</string>
+    <string name="fmaboard_guide_title" translatable="false">Qué puede hacer FMAboard</string>
+    <string name="fmaboard_guide_subtitle" translatable="false">Frases, portapapeles, stickers, voz y más</string>
+    <string name="fmaboard_guide_actions" translatable="false">Elegir qué acciones tengo a mano</string>
+    <string name="fmaboard_learning_subtitle" translatable="false">Qué aprende de ti y cómo borrarlo</string>
+    <string name="fmaboard_check_updates" translatable="false">Buscar actualizaciones</string>
+    <string name="fmaboard_check_updates_subtitle" translatable="false">Abre la página de descargas de FMAboard</string>
+    <string name="fmaboard_help_guide" translatable="false">Qué puede hacer FMAboard</string>
+    <string name="fmaboard_help_guide_subtitle" translatable="false">Dónde está cada función y para qué sirve</string>
+    <string name="fmaboard_help_report" translatable="false">Avisar de un problema o pedir algo</string>
+    <string name="fmaboard_help_report_subtitle" translatable="false">En GitHub, la página del proyecto</string>
+    <string name="fmaboard_help_releases" translatable="false">Novedades y descargas</string>
+    <string name="fmaboard_help_releases_subtitle" translatable="false">Las versiones nuevas de FMAboard</string>
+    <string name="fmaboard_help_project" translatable="false">Página de FMAboard</string>
+    <string name="fmaboard_help_project_subtitle" translatable="false">El código, cómo instalarlo y qué hace cada función</string>
+    <string name="fmaboard_help_futo" translatable="false">FUTO Keyboard</string>
+    <string name="fmaboard_help_futo_subtitle" translatable="false">El teclado original en el que se basa FMAboard</string>
+    <string name="fmaboard_about_title" translatable="false">Acerca de FMAboard</string>
+    <string name="fmaboard_about_text" translatable="false">FMAboard es una versión modificada de FUTO Keyboard (© FUTO Holdings, Inc.), hecha por FMA sin ánimo de lucro y distribuida gratis bajo la FUTO Source First License 1.1. No es una versión oficial de FUTO. Si te gusta el teclado, puedes apoyar a FUTO desde la opción de pago de los ajustes.</string>
+    <string name="fmaboard_about_license" translatable="false">Licencia (FUTO Source First License 1.1)</string>
+    <string name="fmaboard_crashed_text_email" translatable="false">FMAboard se ha cerrado por un error. Si quieres ayudar a arreglarlo, pulsa «Enviar informe»: se abrirá tu correo con el informe adjunto (no incluye tus claves de IA). Puedes enviártelo y subirlo en github.com/GeckCore/FMAboard/issues.</string>
 </resources>

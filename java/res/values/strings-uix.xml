@@ -366,7 +366,7 @@
     <string name="resource_importer_select_language">Select the language to import for:</string>
     <string name="resource_importer_warning_language_missing">This file appears to be intended for a language (%1$s) which is not enabled in settings</string>
     <string name="resource_importer_warning_cfg_backup_is_destructive2">Are you sure you want to import this configuration backup? This will replace all of your settings, personal dictionary (system-wide), learned dictionary words, any imported resources, and more. If you’re unsure, make another backup before this.</string>
-    <string name="resource_importer_warning_cfg_backup_newer_version">This configuration backup was created by a newer version of FUTO Keyboard, and it might not import properly. Try updating FUTO Keyboard first.</string>
+    <string name="resource_importer_warning_cfg_backup_newer_version">This configuration backup was created by a newer version of FMAboard, and it might not import properly. Try updating FMAboard first.</string>
 
     <string name="settings_export_configuration_title">Settings Backup</string>
     <string name="settings_export_configuration">Export configuration</string>
@@ -517,7 +517,7 @@
     <string name="theme_settings_custom_theme_delete_cancel">Cancel</string>
     <string name="theme_settings_add_new_theme">Add new theme</string>
     <string name="theme_settings_add_new_theme_question">Create a new theme from a picture, or add a downloaded ZIP theme?</string>
-    <string name="theme_settings_warning_newer_version">This theme may require a newer version of FUTO Keyboard than the one you have. If you\'re a theme developer, check the error log below.</string>
+    <string name="theme_settings_warning_newer_version">This theme may require a newer version of FMAboard than the one you have. If you\'re a theme developer, check the error log below.</string>
     <string name="theme_settings_visit_theme_store">Explore themes online</string>
 
     <!-- Theme customizer -->
@@ -625,7 +625,7 @@
     <string name="help_menu_title">Help &amp; Feedback</string>
     <string name="help_menu_version_name">Version Name: %1$s</string>
     <string name="help_menu_version_code">Version Code: %1$s</string>
-    <string name="help_menu_version_tip">We want to hear from you! If you\'re reporting an issue, your version may be relevant: v%1$s</string>
+    <string name="help_menu_version_tip">Something not working? Tell us on GitHub and include your version: v%1$s</string>
     <string name="help_menu_website">FUTO Website</string>
     <string name="help_menu_website_subtitle">Learn more about us and our philosophy</string>
     <string name="help_menu_website_tags">download, apps, voice input</string>
@@ -645,15 +645,15 @@
     <string name="setup_step_1">Setup - Step 1</string>
     <string name="setup_step_2">Setup - Step 2</string>
     <string name="setup_step_3">Setup - Step 3</string>
-    <string name="setup_welcome_text">Welcome to FUTO Keyboard! It\'s still being developed so it may lack certain features or languages. We appreciate your patience and understanding.\n\nTo get started, enable FUTO Keyboard as an input method.</string>
+    <string name="setup_welcome_text">Welcome to FMAboard! A free, private keyboard made for typing in Spanish, based on FUTO Keyboard. It learns how you write, only on your phone.\n\nTo get started, enable FMAboard as an input method.</string>
     <string name="setup_open_input_settings">Open Input Method Settings</string>
     <string name="setup_warning_multiple_versions">Warning: You seem to have both Play Store and Standalone versions installed, we only recommend installing one</string>
-    <string name="setup_active_input_method">Please select FUTO Keyboard as your active input method.</string>
+    <string name="setup_active_input_method">Please select FMAboard as your active input method.</string>
     <string name="setup_switch_input_methods">Switch Input Methods</string>
 
     <!-- Credits menu -->
     <string name="credits_menu_title">Credits</string>
-    <string name="credits_menu_header_text">Thanks to these people for helping make FUTO Keyboard a great app!</string>
+    <string name="credits_menu_header_text">Thanks to FUTO and to these people for making FMAboard possible!</string>
     <string name="credits_menu_team_translators_title">Translators</string>
     <string name="credits_menu_team_keyboard_layouts_title">Layout contributors</string>
     <string name="credits_menu_team_code_title">Code contributors</string>

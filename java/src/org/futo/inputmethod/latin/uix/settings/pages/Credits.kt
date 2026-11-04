@@ -247,6 +247,12 @@ fun CreditsScreen(navController: NavHostController = rememberNavController()) {
                 style = Typography.Body.RegularMl
             )
 
+            // FMAboard: notice that this is a modified FUTO Keyboard, as its license asks
+            Text(
+                stringResource(R.string.fmaboard_about_text),
+                style = Typography.Body.RegularMl
+            )
+
             CreditCategorySection(
                 icon = R.drawable.file_text,
                 title = stringResource(R.string.credits_menu_team_translators_title),
@@ -281,6 +287,16 @@ fun CreditsScreen(navController: NavHostController = rememberNavController()) {
             ParagraphText(stringResource(R.string.credits_menu_nonaffiliation_notice))
         }
 
+        NavigationItem(
+            title = stringResource(R.string.fmaboard_about_license),
+            style = NavigationItemStyle.ExternalLink,
+            navigate = { context.openURI("https://github.com/GeckCore/FMAboard/blob/main/LICENSE.md") }
+        )
+        NavigationItem(
+            title = stringResource(R.string.fmaboard_help_project),
+            style = NavigationItemStyle.ExternalLink,
+            navigate = { context.openURI("https://github.com/GeckCore/FMAboard") }
+        )
         CreditsScreenLite.render(showTitle = false)
         BottomSpacer()
     }

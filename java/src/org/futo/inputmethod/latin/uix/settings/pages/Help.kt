@@ -22,6 +22,9 @@ import org.futo.inputmethod.latin.uix.settings.UserSetting
 import org.futo.inputmethod.latin.uix.settings.UserSettingsMenu
 import org.futo.inputmethod.latin.uix.settings.userSettingDecorationOnly
 import org.futo.inputmethod.latin.uix.settings.userSettingNavigationItem
+import org.futo.inputmethod.updates.FMABOARD_ISSUES_URL
+import org.futo.inputmethod.updates.FMABOARD_RELEASES_URL
+import org.futo.inputmethod.updates.FMABOARD_REPO_URL
 import org.futo.inputmethod.updates.openURI
 
 internal fun Context.copyToClipboard(text: CharSequence, label: String = "Copied Text") {
@@ -88,54 +91,37 @@ val HelpMenu = UserSettingsMenu(
                 ))
         },
 
+        // FMAboard: help for this modified version is on its GitHub, not with FUTO
         userSettingNavigationItem(
-            title = R.string.help_menu_website,
-            subtitle = R.string.help_menu_website_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://futo.tech/")
-            }
-        ).copy(searchTags = R.string.help_menu_website_tags),
-
-        userSettingNavigationItem(
-            title = R.string.help_menu_documentation,
-            subtitle = R.string.help_menu_documentation_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://docs.keyboard.futo.tech/")
-            }
+            title = R.string.fmaboard_help_guide,
+            subtitle = R.string.fmaboard_help_guide_subtitle,
+            style = NavigationItemStyle.HomeTertiary,
+            navigateTo = "fmaboardGuide",
+            icon = R.drawable.book
         ),
         userSettingNavigationItem(
-            title = R.string.help_menu_discord,
-            subtitle = R.string.help_menu_discord_subtitle,
+            title = R.string.fmaboard_help_report,
+            subtitle = R.string.fmaboard_help_report_subtitle,
             style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://keyboard.futo.tech/discord")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_futo_chat,
-            subtitle = R.string.help_menu_futo_chat_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://chat.futo.org/")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_github,
-            subtitle = R.string.help_menu_github_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://github.com/futo-org/android-keyboard/issues")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_email,
-            subtitle = R.string.help_menu_email_subtitle,
-            style = NavigationItemStyle.Mail,
-            navigate = { nav ->
-                nav.context.openURI("mailto:keyboard@futo.org")
-            }
+            navigate = { nav -> nav.context.openURI(FMABOARD_ISSUES_URL) }
         ).copy(searchTags = R.string.help_menu_email_tags),
+        userSettingNavigationItem(
+            title = R.string.fmaboard_help_releases,
+            subtitle = R.string.fmaboard_help_releases_subtitle,
+            style = NavigationItemStyle.Misc,
+            navigate = { nav -> nav.context.openURI(FMABOARD_RELEASES_URL) }
+        ),
+        userSettingNavigationItem(
+            title = R.string.fmaboard_help_project,
+            subtitle = R.string.fmaboard_help_project_subtitle,
+            style = NavigationItemStyle.Misc,
+            navigate = { nav -> nav.context.openURI(FMABOARD_REPO_URL) }
+        ),
+        userSettingNavigationItem(
+            title = R.string.fmaboard_help_futo,
+            subtitle = R.string.fmaboard_help_futo_subtitle,
+            style = NavigationItemStyle.Misc,
+            navigate = { nav -> nav.context.openURI("https://keyboard.futo.tech/") }
+        ).copy(searchTags = R.string.help_menu_website_tags),
     )
 )

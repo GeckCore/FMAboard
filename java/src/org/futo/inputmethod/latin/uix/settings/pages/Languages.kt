@@ -62,6 +62,13 @@ import org.futo.inputmethod.latin.uix.namePreferenceKeyFor
 import org.futo.inputmethod.latin.uix.settings.NavigationItemStyle
 import org.futo.inputmethod.latin.uix.settings.Route
 import org.futo.inputmethod.latin.uix.settings.ScreenTitle
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import org.futo.inputmethod.latin.uix.settings.Ios
+import org.futo.inputmethod.latin.uix.settings.IosGroup
+import org.futo.inputmethod.latin.uix.settings.IosIconTile
+import org.futo.inputmethod.latin.uix.settings.IosSectionHeader
+import org.futo.inputmethod.latin.uix.settings.SettingItem
+import org.futo.inputmethod.latin.uix.settings.SettingToggleRaw
 import org.futo.inputmethod.latin.uix.settings.Tip
 import org.futo.inputmethod.latin.uix.settings.UserSettingsMenu
 import org.futo.inputmethod.latin.uix.settings.pages.modelmanager.openModelImporter
@@ -218,115 +225,70 @@ fun LanguageSurface(
     onLanguageRemoved: () -> Unit,
     onToggleMultilingualBucket: (Boolean) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Column(
-            modifier
-                .padding(start = 32.dp, end = 32.dp)
-                .widthIn(296.dp, 400.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .border(
-                    1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(top = 14.dp, bottom = 12.dp)
-        ) {
-            CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSecondaryContainer) {
-                Text(
-                    item.languageName,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                    style = Typography.Heading.MediumMl
-                )
-
-                if (item.options.dictionary == null) {
-                    Tip(stringResource(R.string.language_settings_warning_language_has_no_dict))
-                } else {
-                    Spacer(modifier = Modifier.height(32.dp))
+    // FMAboard: the language as iPhone-like groups instead of a card with big buttons
+    val resources = LocalResources.current
+    val faint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+    Column(modifier.fillMaxWidth()) {
+        IosSectionHeader(item.languageName)
+        IosGroup {
+            listOf(
+                Triple(FileKind.VoiceInput, item.options.voiceInputModel, Ios.Red),
+                Triple(FileKind.Dictionary, item.options.dictionary, Ios.Orange),
+                Triple(FileKind.Transformer, item.options.transformerModel, Ios.Indigo),
+            ).forEach { (kind, selection, color) ->
+                SettingItem(
+                    title = kind.kindTitle(resources),
+                    subtitle = selection ?: stringResource(R.string.language_settings_resource_none),
+                    icon = { IosIconTile(painterResource(kind.icon()), color) },
+                    onClick = { onConfigurableSelected(kind) }
+                ) {
+                    Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = faint,
+                        modifier = Modifier.size(24.dp))
                 }
-
-                LanguageConfigurable(
-                    kind = FileKind.VoiceInput,
-                    selection = item.options.voiceInputModel
-                        ?: stringResource(R.string.language_settings_resource_none)
-                ) { onConfigurableSelected(FileKind.VoiceInput) }
-                LanguageConfigurable(
-                    kind = FileKind.Dictionary,
-                    selection = item.options.dictionary
-                        ?: stringResource(R.string.language_settings_resource_none)
-                ) { onConfigurableSelected(FileKind.Dictionary) }
-                LanguageConfigurable(
-                    kind = FileKind.Transformer,
-                    selection = item.options.transformerModel
-                        ?: stringResource(R.string.language_settings_resource_none)
-                ) { onConfigurableSelected(FileKind.Transformer) }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    stringResource(R.string.language_settings_layouts_of_this_language),
-                    modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp),
-                    style = Typography.SmallMl,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                )
-
-                Spacer(modifier = Modifier.height(9.dp))
-
-                item.layouts.forEach {
-                    LayoutConfigurable(
-                        name = it.second,
-                        active = true,
-                        onDelete = { onLayoutRemoved(it.first) },
-                        canDelete = (item.layouts.size > 1)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-
-                Spacer(modifier = Modifier.height(21.dp))
-
-                Row(Modifier.padding(start = 16.dp, end = 6.dp)) {
-                    Text(
-                        stringResource(R.string.language_settings_enable_multilingual_typing_for_this_language),
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .align(Alignment.CenterVertically),
-                        style = Typography.SmallMl,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                    )
-                    Checkbox(
-                        checked = item.inMultilingualBucket,
-                        onCheckedChange = { onToggleMultilingualBucket(it) },
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            uncheckedColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            checkmarkColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    )
-                }
-
-
-                Spacer(modifier = Modifier.height(21.dp))
-
-                ActionableItem(
-                    icon = painterResource(id = R.drawable.plus_circle),
-                    text = stringResource(R.string.language_settings_add_layout_for_this_language),
-                    color = MaterialTheme.colorScheme.primary,
-                    onTrigger = onLayoutAdditionRequested
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                ActionableItem(
-                    icon = painterResource(id = R.drawable.trash),
-                    text = stringResource(R.string.language_settings_remove_this_language),
-                    color = MaterialTheme.colorScheme.error,
-                    onTrigger = onLanguageRemoved
-                )
             }
+        }
+        if (item.options.dictionary == null) {
+            Tip(stringResource(R.string.language_settings_warning_language_has_no_dict))
+        }
+
+        IosSectionHeader(stringResource(R.string.language_settings_layouts_of_this_language))
+        IosGroup {
+            item.layouts.forEach {
+                SettingItem(title = it.second, compact = true) {
+                    if (item.layouts.size > 1) {
+                        IconButton(onClick = { onLayoutRemoved(it.first) }) {
+                            Icon(painterResource(id = R.drawable.trash), contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                }
+            }
+            SettingItem(
+                title = stringResource(R.string.language_settings_add_layout_for_this_language),
+                compact = true,
+                onClick = onLayoutAdditionRequested,
+                icon = { Icon(painterResource(id = R.drawable.plus_circle), contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp)) }
+            ) {}
+        }
+
+        IosGroup {
+            SettingToggleRaw(
+                title = stringResource(R.string.language_settings_enable_multilingual_typing_for_this_language),
+                enabled = item.inMultilingualBucket,
+                setValue = { onToggleMultilingualBucket(it) },
+                compact = true
+            )
+        }
+
+        IosGroup {
+            SettingItem(
+                title = stringResource(R.string.language_settings_remove_this_language),
+                compact = true,
+                onClick = onLanguageRemoved,
+                icon = { Icon(painterResource(id = R.drawable.trash), contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(22.dp)) }
+            ) {}
         }
     }
 }
@@ -634,7 +596,7 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
             }
         )
     }
-    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
+    LazyColumn {
         item {
             ScreenTitle(
                 stringResource(R.string.language_settings_title),
@@ -643,9 +605,7 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
             )
         }
 
-        items(LanguageSettingsTop) {
-            it.component()
-        }
+        item { IosGroup { LanguageSettingsTop.forEach { it.component() } } } // FMAboard: grouped rows
 
         items(inputMethodKeys) { localeString ->
             val subtypes = inputMethodList[localeString]!!
@@ -692,8 +652,6 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
                 transformerModel = transformerName
             )
 
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             LanguageSurface(
                 LanguageItem(
@@ -747,11 +705,8 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
         }
 
         item {
-            Spacer(modifier = Modifier.height(32.dp))
             ScreenTitle(stringResource(R.string.language_settings_other_options))
         }
-        items(LanguageSettingsBottom) {
-            it.component()
-        }
+        item { IosGroup { LanguageSettingsBottom.forEach { it.component() } } }
     }
 }

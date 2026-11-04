@@ -7,6 +7,9 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 > distribuida gratis bajo la [FUTO Source First License 1.1](LICENSE.md). No es una versión oficial de FUTO.
 > Los cambios propios están en `java/src/org/futo/inputmethod/latin/fmaboard/`, en las líneas marcadas `// FMAboard:`
 > del resto del código y en `lm/`.
+>
+> FMAboard tiene nombre, icono y ajustes propios, con un diseño al estilo iPhone pensado para cualquier persona. Se mantienen los créditos
+> y avisos de FUTO (en la app, en *Créditos*) y la opción de pagar a FUTO.
 
 ## Qué añade
 
@@ -28,7 +31,7 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 ## Privacidad
 
 - El registro de escritura se guarda **solo en tu móvil** (y en una copia en `Documentos/FMAboard`). Nunca se envía a ningún sitio.
-  Puedes desactivarlo o borrarlo en *Ajustes → FMAboard*.
+  Puedes desactivarlo o borrarlo en *Ajustes → Aprendizaje y privacidad*.
 - Nunca se registra lo que escribes en contraseñas, códigos, campos de incógnito ni en los campos que no son de texto.
 - La IA solo se usa cuando la pulsas, y con **tu propia clave** de OpenRouter o de Gemini, que se guarda en el móvil. El código no incluye ninguna clave.
 
@@ -36,8 +39,8 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 
 1. Descarga el `.apk` de la última versión en [Releases](https://github.com/GeckCore/FMAboard/releases) e instálalo.
    Android te pedirá permiso para instalar apps de origen desconocido.
-2. Abre FMAboard y sigue los pasos para activarlo como teclado.
-3. Para la IA (opcional), crea una clave gratuita en OpenRouter o en Google AI Studio (Gemini, sin activar la facturación) y pégala en *Ajustes → FMAboard*.
+2. Abre FMAboard y sigue los pasos para activarlo como teclado. En *Ajustes → Qué puede hacer FMAboard* tienes una guía de cada función.
+3. Para la IA (opcional), crea una clave gratuita en OpenRouter o en Google AI Studio (Gemini, sin activar la facturación) y pégala en *Ajustes → Inteligencia artificial*, que te guía paso a paso.
 
 El español viene listo: la APK incluye el diccionario, el modelo de predicción y el de dictado por voz,
 y se configuran solos la primera vez que usas el teclado con español. Lo que ya hubieras importado no se toca.

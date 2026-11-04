@@ -189,5 +189,41 @@ SKK Development Team <skk@ring.gr.jp>""",
         "https://clearflowkeyboard.github.io/",
         "Copyright (c) 2024-2026 ClearFlow Authors (Xiaojun Bi et al.)",
         License.PublicDomainClearflow
+    ),
+    // FMAboard additions
+    TP(
+        "Kokoro-82M",
+        "FMAboard: natural voice for Mensaje de voz",
+        "https://huggingface.co/hexgrad/Kokoro-82M",
+        "Copyright (c) 2024 hexgrad",
+        License.Apache2
+    ),
+    TP(
+        "sherpa-onnx",
+        "FMAboard: on-device text to speech",
+        "https://github.com/k2-fsa/sherpa-onnx",
+        "Copyright (c) 2022-2025 Xiaomi Corporation",
+        License.Apache2
+    ),
+    TP(
+        "ONNX Runtime",
+        "FMAboard: runs the voice model on the phone",
+        "https://github.com/microsoft/onnxruntime",
+        "Copyright (c) Microsoft Corporation",
+        License.MIT
+    ),
+    TP(
+        "futo-keyboard-polyglot",
+        "FMAboard: Spanish prediction model and Unicode keystrokes patch",
+        "https://github.com/erickgtzh/futo-keyboard-polyglot",
+        "Copyright (c) erickgtzh and contributors",
+        License.MIT
+    ),
+    TP(
+        "ML Kit",
+        "FMAboard: text recognition and background removal, on the phone",
+        "https://developers.google.com/ml-kit",
+        "Copyright (c) Google LLC",
+        License.Proprietary
     )
 )

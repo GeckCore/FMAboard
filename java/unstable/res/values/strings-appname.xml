@@ -4,11 +4,11 @@
     <string name="english_ime_name">FMAboard</string>
 
     <!-- Name of Android spell checker service. "FUTO" should not be translated. -->
-    <string name="spell_checker_service_name">FUTO Spell Checker [Dev Build]</string>
+    <string name="spell_checker_service_name">Corrector de FMAboard</string>
 
     <!-- Title for Android Keyboard settings screen. "FUTO" should not be translated. -->
     <string name="english_ime_settings">Ajustes de FMAboard</string>
 
     <!-- Title for the spell checking service settings screen. "FUTO" should not be translated. -->
-    <string name="android_spell_checker_settings">FUTO Spell Checker Settings [Dev Build]</string>
+    <string name="android_spell_checker_settings">Ajustes del corrector de FMAboard</string>
 </resources>

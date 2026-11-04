@@ -92,7 +92,7 @@ private fun RowScope.PreviewSuggestionItem(word: String, isAutocorrect: Boolean)
 
 @Composable
 private fun PreviewSuggestions(word1: String, word2: String, word3: String, isAlt: Boolean) {
-    Row(Modifier.fillMaxWidth().background(
+    Row(Modifier.fillMaxWidth().height(40.dp).background( // FMAboard: fixed height, rows no longer measure intrinsics
         LocalKeyboardScheme.current.keyboardSurfaceDim, RoundedCornerShape(4.dp)
     ).border(
         Dp.Hairline, LocalKeyboardScheme.current.outline.copy(alpha=0.3f), RoundedCornerShape(4.dp)

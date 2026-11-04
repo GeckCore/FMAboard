@@ -135,9 +135,9 @@ object AiRewrite {
     private fun withFallback(context: Context, call: (Provider) -> String): String {
         val list = providers(context)
         if (list.isEmpty()) throw RewriteException(when (mode(context)) {
-            Mode.OnlyOpenRouter -> "Falta la clave de OpenRouter (Ajustes → FMAboard)."
-            Mode.OnlyGemini -> "Falta la clave de Gemini (Ajustes → FMAboard)."
-            else -> "Falta la clave de OpenRouter o de Gemini (Ajustes → FMAboard)."
+            Mode.OnlyOpenRouter -> "Falta la clave de OpenRouter (Ajustes → Inteligencia artificial)."
+            Mode.OnlyGemini -> "Falta la clave de Gemini (Ajustes → Inteligencia artificial)."
+            else -> "Falta la clave de OpenRouter o de Gemini (Ajustes → Inteligencia artificial)."
         })
         val errors = ArrayList<String>()
         for (provider in list) {

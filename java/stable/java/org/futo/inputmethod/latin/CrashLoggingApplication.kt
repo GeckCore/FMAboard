@@ -58,13 +58,15 @@ class CrashLoggingApplication : Application() /*, Configuration.Provider*/ {
             println("Initializing ACRA, as user is unlocked")
             initAcra {
                 reportFormat = StringFormat.JSON
+                // FMAboard: settings hold the AI keys, keep them out of crash reports
+                excludeMatchingSharedPreferencesKeys = listOf(".*")
 
                 dialog {
                     text = getString(
                         //if(BuildConfig.ENABLE_ACRA) {
                         //    R.string.crashed_text
                         //} else {
-                        R.string.crashed_text_email
+                        R.string.fmaboard_crashed_text_email // FMAboard: not FUTO's address
                         //}
                     )
                     title = getString(R.string.crashed_title)
@@ -83,12 +85,12 @@ class CrashLoggingApplication : Application() /*, Configuration.Provider*/ {
                 //    }
                 //} else {
                 mailSender {
-                    mailTo = "keyboard@futo.org"
+                    mailTo = "" // FMAboard: the user chooses where it goes
                     reportAsFile = true
                     reportFileName = "Crash.txt"
-                    subject = "Keyboard Crash Report"
+                    subject = "FMAboard Crash Report"
                     body =
-                        "I experienced this crash. My version: ${BuildConfig.VERSION_NAME}.\n\n(Enter details here if necessary)"
+                        "FMAboard se ha cerrado. Versión: ${BuildConfig.VERSION_NAME}.\n\n(Si quieres, cuenta aquí qué estabas haciendo)"
                 }
                 //}
             }

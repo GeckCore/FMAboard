@@ -89,10 +89,8 @@ private fun TypingLogStatsCard() {
     }
 
     Tip(stats?.let {
-        "Mensajes guardados: ${it.messages} (hoy: ${it.messagesToday})\n" +
-        "Eventos de tecleo: ${it.events}\n" +
-        "Días con datos: ${it.days}\n" +
-        "Tamaño: ${formatBytes(it.bytes)}"
+        if (it.messages == 0L) "Aún no ha aprendido nada. Escribe con normalidad y aprenderá solo."
+        else "Ha aprendido de ${it.messages} mensajes en ${it.days} días (hoy: ${it.messagesToday}). Ocupa ${formatBytes(it.bytes)}."
     } ?: "Calculando…")
 }
 
@@ -104,48 +102,6 @@ fun triggerExportTypingLog(context: Context) {
         putExtra(Intent.EXTRA_TITLE, "fmaboard-typing-$date.zip")
     }
     findActivity(context)!!.startActivityForResult(intent, EXPORT_TYPING_LOG_REQUEST)
-}
-
-// Password field so the keyboard's own typing log skips it.
-@Composable
-private fun AiApiKeyField(pref: String = AiRewrite.PREF_API_KEY, label: String = "Clave de OpenRouter (sk-or-…)") {
-    val context = LocalContext.current
-    val prefs = remember { PreferenceUtils.getDefaultSharedPreferences(context) }
-    var key by remember { mutableStateOf(prefs.getString(pref, "") ?: "") }
-
-    OutlinedTextField(
-        value = key,
-        onValueChange = {
-            key = it.trim()
-            prefs.edit { putString(pref, key) }
-        },
-        label = { Text(label) },
-        singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
-        modifier = Modifier.fillMaxWidth().padding(16.dp, 8.dp)
-    )
-}
-
-// Which AI service answers first, and whether the other one steps in when it fails
-@Composable
-private fun AiProviderChooser() {
-    val context = LocalContext.current
-    val prefs = remember { PreferenceUtils.getDefaultSharedPreferences(context) }
-    var mode by remember { mutableStateOf(AiRewrite.mode(context)) }
-    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
-        Text("Qué IA usar", style = MaterialTheme.typography.titleSmall)
-        AiRewrite.Mode.entries.forEach { m ->
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().clickable {
-                    mode = m
-                    prefs.edit { putString(AiRewrite.PREF_PROVIDER, m.id) }
-                }) {
-                RadioButton(selected = mode == m, onClick = null, modifier = Modifier.padding(8.dp))
-                Text(m.label)
-            }
-        }
-    }
 }
 
 private val autocorrectGeneration = mutableIntStateOf(0)
@@ -201,6 +157,10 @@ val TypingLogMenu = UserSettingsMenu(
     title = R.string.fmaboard_title,
     navPath = "fmaboard", registerNavPath = true,
     settings = listOf(
+        userSettingDecorationOnly {
+            Tip("FMAboard aprende de lo que escribes para sugerirte tus frases, corregirte a tu manera y que la IA imite tu estilo. Todo se queda en este móvil.")
+        },
+
         userSettingToggleSharedPrefs(
             title = R.string.fmaboard_enabled,
             subtitle = R.string.fmaboard_enabled_subtitle,
@@ -211,11 +171,23 @@ val TypingLogMenu = UserSettingsMenu(
         userSettingDecorationOnly { TypingLogStatsCard() },
 
         userSettingDecorationOnly {
-            Tip("Guardado automático: cada pocos minutos se copia todo a Documentos/FMAboard/ (una carpeta por mes). Esa copia sobrevive aunque desinstales el teclado.")
+            Tip("Nunca se guarda lo que escribes en contraseñas, códigos de verificación, números de teléfono ni en apps en modo incógnito.")
         },
 
+        userSettingDecorationOnly { SectionHeader("Autocorrector personal") },
+
+        userSettingDecorationOnly { PersonalAutocorrectCard() },
+
+        userSettingNavigationItem(
+            title = R.string.fmaboard_autocorrect_clear,
+            style = NavigationItemStyle.MiscNoArrow,
+            navigate = { nav -> confirmClearAutocorrect(nav.context) }
+        ),
+
+        userSettingDecorationOnly { SectionHeader("Copia de seguridad") },
+
         userSettingDecorationOnly {
-            Tip("Nunca se registran: contraseñas, códigos (OTP), campos numéricos o de teléfono, ni apps en modo incógnito. Los cambios se aplican al abrir el siguiente campo de texto.")
+            Tip("Cada pocos minutos se guarda una copia en la carpeta Documentos/FMAboard de tu móvil, así no pierdes nada aunque desinstales el teclado.")
         },
 
         userSettingNavigationItem(
@@ -231,46 +203,10 @@ val TypingLogMenu = UserSettingsMenu(
             style = NavigationItemStyle.MiscNoArrow,
             navigate = { nav -> confirmDeleteTypingLog(nav.context) }
         ),
-
-        userSettingDecorationOnly { PersonalAutocorrectCard() },
-
-        userSettingNavigationItem(
-            title = R.string.fmaboard_autocorrect_clear,
-            style = NavigationItemStyle.MiscNoArrow,
-            navigate = { nav -> confirmClearAutocorrect(nav.context) }
-        ),
-
-        userSettingDecorationOnly {
-            Tip("IA (\"Reescribir con IA\" y \"Responder con mi estilo\"): ábrelas desde el menú de acciones (⋯ en la barra de sugerencias). Usan modelos gratuitos de OpenRouter o de Gemini (la clave de aistudio.google.com es gratis si no activas la facturación); si eliges las dos, cuando una falla o está saturada se usa la otra. Solo se envía el texto que eliges reescribir o la conversación que quieres contestar (leída de la pantalla solo al abrir \"Responder con mi estilo\", si activas \"FMAboard: contexto para responder\" en Accesibilidad, o el mensaje copiado), más un resumen de tu estilo calculado en el móvil (longitud, tildes, muletillas, emojis). Tus mensajes guardados nunca se envían.")
-        },
-
-        userSettingDecorationOnly { AiProviderChooser() },
-
-        userSettingDecorationOnly { AiApiKeyField() },
-
-        userSettingDecorationOnly { AiApiKeyField(AiRewrite.PREF_GEMINI_KEY, "Clave de Gemini (AIza…)") },
-
-        userSettingToggleSharedPrefs(
-            title = R.string.fmaboard_ai_dictation,
-            subtitle = R.string.fmaboard_ai_dictation_subtitle,
-            key = AiDictation.PREF_ENABLED,
-            default = { AiDictation.DEFAULT_ENABLED }
-        ),
-
-        userSettingDecorationOnly {
-            Tip("Mensaje de voz (menú de acciones): convierte lo que escribes en un audio con voz natural (Dora o Alex) y lo envía a la app en la que estás. La voz se genera en el móvil, sin internet; la primera vez se descarga (${VoiceMessage.downloadBytes / 1_000_000} MB).")
-        },
-
-        userSettingNavigationItem(
-            title = R.string.fmaboard_voice_delete,
-            subtitle = R.string.fmaboard_voice_delete_subtitle,
-            style = NavigationItemStyle.MiscNoArrow,
-            navigate = { nav -> confirmDeleteVoice(nav.context) }
-        ),
     )
 )
 
-private fun confirmDeleteVoice(context: Context) {
+internal fun confirmDeleteVoice(context: Context) {
     val size = VoiceMessage.installedBytes(context)
     if (size == 0L) {
         android.widget.Toast.makeText(context, "No hay ninguna voz descargada", android.widget.Toast.LENGTH_SHORT).show()

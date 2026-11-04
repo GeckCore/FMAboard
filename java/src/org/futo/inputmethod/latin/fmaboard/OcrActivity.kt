@@ -381,7 +381,7 @@ class OcrActivity : ComponentActivity() {
                         )
                     }
                     Text(
-                        aiMessage ?: if (!hasKey) "Para usar la IA, pon la clave de OpenRouter o de Gemini en Ajustes → FMAboard."
+                        aiMessage ?: if (!hasKey) "Para usar la IA, pon la clave de OpenRouter o de Gemini en Ajustes → Inteligencia artificial."
                             else "La IA envía la imagen${if (crop != null) " recortada" else ""} a un modelo gratis (OpenRouter o Gemini), solo si la pulsas.",
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline
                     )

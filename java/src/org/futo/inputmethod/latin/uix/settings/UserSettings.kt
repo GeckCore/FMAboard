@@ -17,8 +17,12 @@ data class UserSetting(
     val visibilityCheck: (@Composable () -> Boolean)? = null,
     val appearInSearchIfVisibilityCheckFailed: Boolean = true,
     val appearsInSearch: Boolean = true,
+    /** FMAboard: sits inside a rounded group. By default rows do and decorations (notes, headers) don't. */
+    val grouped: Boolean? = null,
     val component: @Composable () -> Unit,
 )
+
+val UserSetting.isGroupedRow: Boolean get() = grouped ?: (name != 0)
 
 data class UserSettingsMenu(
     @StringRes val title: Int,
@@ -36,7 +40,8 @@ fun userSettingNavigationItem(
     navigateTo: String? = null,
     navigate: ((NavHostController) -> Unit)? = null,
     @DrawableRes icon: Int? = null,
-    @StringRes subtitle: Int? = null
+    @StringRes subtitle: Int? = null,
+    iconColor: androidx.compose.ui.graphics.Color? = null,
 ): UserSetting = UserSetting(
     name = title,
     subtitle = subtitle,
@@ -46,6 +51,7 @@ fun userSettingNavigationItem(
             title = stringResource(title),
             style = style,
             icon = icon?.let { painterResource(it) },
+            iconColor = iconColor,
             subtitle = subtitle?.let { stringResource(it) },
             navigate = {
                 if(navigateTo != null) navController!!.navigate(navigateTo)
@@ -122,9 +128,19 @@ fun UserSettingsMenu.render(showBack: Boolean = true, showTitle: Boolean = true)
     if(showTitle) {
         ScreenTitle(stringResource(title), showBack = showBack, navController)
     }
-    settings.forEach {
-        if(it.visibilityCheck?.invoke() != false) {
-            it.component()
+    // FMAboard: consecutive rows go into one iPhone-like group; notes and headers sit between groups
+    val visible = settings.filter { it.visibilityCheck?.invoke() != false }
+    var i = 0
+    while(i < visible.size) {
+        if(visible[i].isGroupedRow) {
+            var j = i
+            while(j < visible.size && visible[j].isGroupedRow) j++
+            val run = visible.subList(i, j)
+            IosGroup { run.forEach { it.component() } }
+            i = j
+        } else {
+            visible[i].component()
+            i++
         }
     }
 }

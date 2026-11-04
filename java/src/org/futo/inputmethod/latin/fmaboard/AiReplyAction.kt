@@ -85,10 +85,10 @@ private fun ReplyContents(manager: KeyboardManagerForAction, conversation: Strin
 
     if (!AiRewrite.hasApiKey(context)) {
         Column(Modifier.padding(8.dp)) {
-            Tip("Para responder con IA pega tu clave de OpenRouter o de Gemini en Ajustes → FMAboard.")
+            Tip("Para responder con IA pega tu clave de OpenRouter o de Gemini en Ajustes → Inteligencia artificial.")
             Button(onClick = {
                 manager.closeActionWindow()
-                SettingsActivity.openToNavDest(context, "fmaboard")
+                SettingsActivity.openToNavDest(context, "ai")
             }, modifier = Modifier.padding(8.dp)) { Text("Abrir ajustes") }
         }
         return

@@ -123,9 +123,10 @@ val BugViewerAction = Action(
                             }
 
                             TextButton(onClick = {
-                                manager.getContext().openURI("mailto:keyboard@futo.org", newTask = true)
+                                // FMAboard: bugs of this modified version go to its own tracker
+                                manager.getContext().openURI(org.futo.inputmethod.updates.FMABOARD_ISSUES_URL, newTask = true)
                             }) {
-                                Text("Email us (include the copy)")
+                                Text("Report on GitHub (paste the copy)")
                             }
                         }
                         Text(it.details, style = DebugLabel)

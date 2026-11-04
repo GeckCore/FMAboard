@@ -95,14 +95,13 @@ fun Context.openURI(uri: String, newTask: Boolean = false) {
     }
 }
 
+// FMAboard: new versions are published on GitHub, not on keyboard.futo.tech
+const val FMABOARD_RELEASES_URL = "https://github.com/GeckCore/FMAboard/releases"
+const val FMABOARD_ISSUES_URL = "https://github.com/GeckCore/FMAboard/issues"
+const val FMABOARD_REPO_URL = "https://github.com/GeckCore/FMAboard"
+
 fun Context.openManualUpdateCheck() {
-    openURI("https://keyboard.futo.tech/manual_update?version=${BuildConfig.VERSION_CODE}&build=${BuildConfig.FLAVOR}".let {
-        if(BuildConfig.BRANCH != "master") {
-            it + "&branch=${BuildConfig.BRANCH}&name=${BuildConfig.VERSION_NAME}"
-        } else {
-            it
-        }
-    }, newTask = true)
+    openURI(FMABOARD_RELEASES_URL, newTask = true)
 }
 
 @Composable

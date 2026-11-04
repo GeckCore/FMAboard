@@ -40,6 +40,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
@@ -65,6 +67,8 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -109,25 +113,27 @@ import kotlin.math.pow
 
 @Composable
 fun ScreenTitle(title: String, showBack: Boolean = false, navController: NavHostController? = LocalNavController.current ?: rememberNavController()) {
-    val rowModifier = if(showBack) {
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClickLabel = "Navigate back") {
-                navController!!.navigateUp()
+    // FMAboard: iPhone-like navigation bar (back chevron) and large title
+    if(showBack) {
+        Column(Modifier.fillMaxWidth()) {
+            Box(
+                Modifier
+                    .padding(start = 4.dp, top = 4.dp)
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(22.dp))
+                    .clickable(onClickLabel = "Navigate back") { navController!!.navigateUp() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.KeyboardArrowLeft, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(34.dp))
             }
-    } else {
-        Modifier.fillMaxWidth()
-    }
-    Row(modifier = rowModifier) {
-        Spacer(modifier = Modifier.width(16.dp))
-
-        if(showBack) {
-            Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.align(CenterVertically))
-            Spacer(modifier = Modifier.width(18.dp))
+            if(title.isNotEmpty()) {
+                Text(title, style = Ios.LargeTitle, color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 8.dp))
+            }
         }
-        Text(title, style = Typography.Heading.Medium, modifier = Modifier
-            .align(CenterVertically)
-            .padding(0.dp, 16.dp))
+    } else if(title.isNotEmpty()) {
+        IosSectionHeader(title)
     }
 }
 
@@ -147,49 +153,18 @@ fun ScreenTitleWithIcon(title: String, painter: Painter) {
 @Composable
 @Preview
 fun Tip(text: String = "This is an example tip") {
-    Surface(
-        color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp), shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text,
-            modifier = Modifier.padding(8.dp),
-            style = Typography.Body.RegularMl,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-    }
+    // FMAboard: a grey note, like the text under an iPhone settings group
+    IosFootnote(text)
 }
 
 @Composable
 @Preview
 fun WarningTip(text: String = "This is an example tip") {
-    Surface(
-        color = MaterialTheme.colorScheme.errorContainer, modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp), shape = RoundedCornerShape(4.dp)
-    ) {
-
-        Text(
-            buildAnnotatedString {
-                appendInlineContent("icon")
-                append(' ')
-                append(text)
-            },
-            modifier = Modifier.padding(8.dp),
-            style = Typography.Body.RegularMl,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-            inlineContent = mapOf(
-                "icon" to InlineTextContent(
-                    Placeholder(
-                        width = with(LocalDensity.current) { 24.dp.toPx().toSp() },
-                        height = with(LocalDensity.current) { 24.dp.toPx().toSp() },
-                        placeholderVerticalAlign = PlaceholderVerticalAlign.Center
-                    )
-                ){
-                    Icon(Icons.Default.Warning, contentDescription = null)
-                }
-            ))
+    Row(Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 6.dp, bottom = 10.dp)) {
+        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(text, style = Ios.Footnote, color = MaterialTheme.colorScheme.error)
     }
 }
 
@@ -230,10 +205,15 @@ fun SettingItem(
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
+    // FMAboard: iPhone-like row, with a hairline above it when it sits in a group
+    val inGroup = LocalIosGroup.current
+    val dividerColor = iosDividerColor()
+    val textStart = Ios.RowPadding + if(icon != null) Ios.IconTile + Ios.IconGap else 0.dp
+
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .defaultMinSize(0.dp, if(compact) { 48.dp } else { 68.dp })
+            .defaultMinSize(0.dp, if(compact) { 44.dp } else { 52.dp })
             .let {
                 if(onClick != null && onSubmenuNavigate == null) {
                     it.clickable(enabled = !disabled, onClick = {
@@ -251,67 +231,44 @@ fun SettingItem(
                     it
                 }
             }
-            .height(intrinsicSize = IntrinsicSize.Min),
+            .let {
+                if(inGroup) it.drawBehind {
+                    drawLine(dividerColor, Offset(textStart.toPx(), 0.5f), Offset(size.width, 0.5f), 1.dp.toPx())
+                } else it
+            }
+            // Only split rows need equal-height halves; intrinsics would cut previews drawn under a title
+            .let { if(onSubmenuNavigate != null) it.height(intrinsicSize = IntrinsicSize.Min) else it },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(Modifier.weight(1.0f).fillMaxHeight().padding(0.dp, 4.dp)) {
-            Spacer(Modifier.width(4.dp))
-            Spacer(Modifier.width(16.dp))
-            Column(
-                modifier = Modifier
-                    .width(48.dp)
-                    .align(Alignment.CenterVertically)
-            ) {
-                Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
-                    if (icon != null) {
-                        icon()
-                    }
-                }
+        Spacer(Modifier.width(Ios.RowPadding))
+        if (icon != null) {
+            Box(Modifier.defaultMinSize(Ios.IconTile, Ios.IconTile), contentAlignment = Alignment.Center) {
+                icon()
             }
+            Spacer(Modifier.width(Ios.IconGap))
+        }
 
-            Spacer(Modifier.width(12.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 10.dp)
+                .alpha(if (disabled) 0.4f else 1.0f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(title, style = Ios.RowTitle, color = textColor)
 
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
-                    .alpha(
-                        if (disabled) {
-                            0.5f
-                        } else {
-                            1.0f
-                        }
-                    )
-            ) {
-                SpacedColumn(4.dp) {
-                    Text(
-                        title,
-                        style = Typography.Heading.RegularMl,
-                        color = textColor,
-                        modifier = Modifier.heightIn(min = 24.dp)
-                    )
-
-                    if (subtitle != null) {
-                        Text(
-                            subtitle,
-                            style = Typography.SmallMl,
-                            color = subTextColor
-                        )
-                    } else if (subcontent != null) {
-                        subcontent()
-                    }
-                }
+            if (subtitle != null) {
+                Text(subtitle, style = Ios.RowSubtitle, color = subTextColor)
+            } else if (subcontent != null) {
+                subcontent()
             }
-            if(onSubmenuNavigate != null) { Spacer(Modifier.width(8.dp)) }
         }
 
         if(onSubmenuNavigate != null) {
-            VerticalDivider(
-                Modifier.height(64.dp),
-                color = MaterialTheme.colorScheme.outline
-            )
+            Spacer(Modifier.width(8.dp))
+            VerticalDivider(Modifier.height(28.dp), color = dividerColor)
         } else {
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(8.dp))
         }
 
         Row(Modifier.let {
@@ -324,14 +281,12 @@ fun SettingItem(
             } else {
                 it
             }
-        }.fillMaxHeight()) {
-            if(onSubmenuNavigate != null) { Spacer(Modifier.width(8.dp)) }
+        }.fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
+            if(onSubmenuNavigate != null) { Spacer(Modifier.width(12.dp)) }
             Box(modifier = Modifier.align(Alignment.CenterVertically), contentAlignment = Alignment.Center) {
                 content()
             }
-
-            Spacer(modifier = Modifier.width(12.dp))
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(Ios.RowPadding))
         }
     }
 }
@@ -370,7 +325,7 @@ fun SettingToggleRaw(
         onSubmenuNavigate = onSubmenuNavigate,
         compact = compact
     ) {
-        Switch(checked = enabled, onCheckedChange = {
+        IosSwitch(checked = enabled, onCheckedChange = {
             if (!disabled) {
                 setValue(!enabled)
             }
@@ -669,55 +624,37 @@ enum class NavigationItemStyle {
 }
 
 @Composable
-fun NavigationItem(title: String, style: NavigationItemStyle, navigate: () -> Unit, icon: Painter? = null, subtitle: String? = null, compact: Boolean = false) {
+fun NavigationItem(title: String, style: NavigationItemStyle, navigate: () -> Unit, icon: Painter? = null, subtitle: String? = null, compact: Boolean = false, iconColor: Color? = null) {
+    // FMAboard: iPhone-like row, coloured icon tile and a light chevron
+    val tile = iconColor ?: when(style) {
+        NavigationItemStyle.HomePrimary -> Ios.Blue
+        NavigationItemStyle.HomeSecondary -> Ios.Orange
+        NavigationItemStyle.HomeTertiary -> Ios.Purple
+        else -> null
+    }
+    val faint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
     SettingItem(
         title = title,
         subtitle = subtitle,
         onClick = navigate,
         compact = compact,
-        icon = {
-            icon?.let {
-                val circleColor = when(style) {
-                    NavigationItemStyle.HomePrimary -> MaterialTheme.colorScheme.primaryContainer
-                    NavigationItemStyle.HomeSecondary -> MaterialTheme.colorScheme.secondaryContainer
-                    NavigationItemStyle.HomeTertiary -> MaterialTheme.colorScheme.tertiaryContainer
-
-                    NavigationItemStyle.MiscNoArrow,
-                    NavigationItemStyle.Misc,
-                    NavigationItemStyle.ExternalLink,
-                    NavigationItemStyle.Mail -> Color.Transparent
-                }
-
-                val iconColor = when(style) {
-                    NavigationItemStyle.HomePrimary -> MaterialTheme.colorScheme.onPrimaryContainer
-                    NavigationItemStyle.HomeSecondary -> MaterialTheme.colorScheme.onSecondaryContainer
-                    NavigationItemStyle.HomeTertiary -> MaterialTheme.colorScheme.onTertiaryContainer
-
-                    NavigationItemStyle.MiscNoArrow,
-                    NavigationItemStyle.Mail,
-                    NavigationItemStyle.ExternalLink,
-                    NavigationItemStyle.Misc -> LocalContentColor.current.copy(alpha = 0.75f)
-                }
-
-                Canvas(modifier = Modifier.size(48.dp)) {
-                    drawCircle(circleColor, this.size.maxDimension / 2.4f)
-                    translate(
-                        left = this.size.width / 2.0f - icon.intrinsicSize.width / 2.0f,
-                        top = this.size.height / 2.0f - icon.intrinsicSize.height / 2.0f
-                    ) {
-                        with(icon) {
-                            draw(icon.intrinsicSize, colorFilter = ColorFilter.tint(iconColor))
-                        }
-                    }
-                }
+        icon = icon?.let { painter -> {
+            if(tile != null) {
+                IosIconTile(painter, tile)
+            } else {
+                Icon(painter, contentDescription = null, tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp))
             }
-        }
+        } }
     ) {
         when(style) {
-            NavigationItemStyle.Misc -> Icon(Icons.Default.ArrowForward, contentDescription = null)
-            NavigationItemStyle.Mail -> Icon(Icons.Default.Send, contentDescription = null)
-            NavigationItemStyle.ExternalLink -> Icon(painterResource(R.drawable.external_link), contentDescription = null)
-            else -> {}
+            NavigationItemStyle.MiscNoArrow -> {}
+            NavigationItemStyle.Mail -> Icon(Icons.Default.Send, contentDescription = null, tint = faint,
+                modifier = Modifier.size(20.dp))
+            NavigationItemStyle.ExternalLink -> Icon(painterResource(R.drawable.external_link),
+                contentDescription = null, tint = faint, modifier = Modifier.size(18.dp))
+            else -> Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = faint,
+                modifier = Modifier.size(24.dp))
         }
     }
 }
@@ -995,29 +932,23 @@ fun PrimarySettingToggleDataStoreItem(
 ) {
     val (enabled, setValue) = dataStoreItem
 
-    Box(Modifier.padding(24.dp)) {
-        Surface(
-            shape = RoundedCornerShape(48.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            modifier = Modifier.clearAndSetSemantics {
-                this.text = AnnotatedString(title)
-                this.role = Role.Switch
-                this.toggleableState = ToggleableState(enabled)
-            },
-            onClick = {
-                setValue(!enabled)
-            }
-        ) {
-            Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    title,
-                    style = Typography.Heading.RegularMl,
-                    modifier = Modifier.heightIn(min = 24.dp)
-                )
-                Spacer(Modifier.weight(1.0f))
-
-                Switch(checked = enabled, onCheckedChange = null)
-            }
+    // FMAboard: a single-row group with an iPhone switch
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp).clearAndSetSemantics {
+            this.text = AnnotatedString(title)
+            this.role = Role.Switch
+            this.toggleableState = ToggleableState(enabled)
+        },
+        onClick = {
+            setValue(!enabled)
+        }
+    ) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = Ios.RowTitle.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+                modifier = Modifier.weight(1.0f))
+            IosSwitch(checked = enabled, onCheckedChange = null)
         }
     }
 }

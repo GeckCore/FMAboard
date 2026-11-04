@@ -466,7 +466,7 @@ object SettingsExporter {
         val date = Date()
         val formatter = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", context.resources.configuration.locale)
         val formattedDate = formatter.format(date)
-        val defaultFileName = "FUTOKeyboardSettings_${formattedDate}.backup"
+        val defaultFileName = "FMAboard-ajustes_${formattedDate}.backup" // FMAboard
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "application/octet-stream"
