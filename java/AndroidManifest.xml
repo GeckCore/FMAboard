@@ -32,6 +32,11 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
         android:minSdkVersion="33" />
+    <!-- FMAboard: "Lo último de WhatsApp" in Crear sticker (photos, videos and GIFs received) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"
+        android:minSdkVersion="33" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED"
+        android:minSdkVersion="34" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove"/>
 
@@ -238,6 +243,36 @@
             android:excludeFromRecents="true"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <!-- FMAboard: make a WhatsApp sticker from a photo, video or GIF; also a share target -->
+        <activity android:name="org.futo.inputmethod.latin.fmaboard.StickerActivity"
+            android:exported="true"
+            android:label="@string/fmaboard_sticker_title"
+            android:taskAffinity=""
+            android:excludeFromRecents="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.AppCompat.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- FMAboard: same screen, but makes the sticker straight away as it is ("Sticker al momento") -->
+        <activity-alias android:name="org.futo.inputmethod.latin.fmaboard.QuickSticker"
+            android:targetActivity="org.futo.inputmethod.latin.fmaboard.StickerActivity"
+            android:exported="true"
+            android:label="@string/fmaboard_sticker_quick_title">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity-alias>
+        <meta-data android:name="com.google.mlkit.vision.DEPENDENCIES" android:value="subject_segment" />
 
         <!-- FMAboard: download a video/audio from a link and send it -->
         <activity android:name="org.futo.inputmethod.latin.fmaboard.LinkDownloadActivity"

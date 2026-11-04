@@ -54,9 +54,12 @@ import androidx.core.graphics.get
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.content.FONT_AUTHORITY
+import org.futo.inputmethod.latin.fmaboard.StickerMaker
+import org.futo.inputmethod.latin.fmaboard.StickerSend
 import org.futo.inputmethod.latin.uix.Action
 import org.futo.inputmethod.latin.uix.ActionTextEditor
 import org.futo.inputmethod.latin.uix.ActionWindow
@@ -334,15 +337,30 @@ internal fun FontTyperContents(
                 onClick = {
                     if(text.value.isBlank()) return@Button
 
-                    val request = ImageTypeRequest(
-                        text = text.value,
-                        generator = "",
-                        rendererInstance = currRenderer
-                    )
+                    // FMAboard: sent as a real WhatsApp sticker (512×512 WebP signed "FMAboard")
+                    // where the app takes them, so every style arrives as a sticker
+                    val toSend = text.value
+                    val stickerMime = StickerSend.mimeFor { manager!!.appSupportsImageInsertion(it, true) }
+                    if (stickerMime != null) {
+                        manager!!.getLifecycleScope().launch {
+                            val file = withContext(Dispatchers.Default) {
+                                currRenderer.render(context, toSend)?.let {
+                                    StickerSend.save(context, StickerMaker.fromImage(it))
+                                }
+                            }
+                            if (file != null) manager.typeUri(StickerSend.uriFor(context, file), listOf(stickerMime), true)
+                        }
+                    } else {
+                        val request = ImageTypeRequest(
+                            text = toSend,
+                            generator = "",
+                            rendererInstance = currRenderer
+                        )
 
-                    val id = ImageTyperState.addRequest(request)
-                    val uri = "content://${FONT_AUTHORITY}/render/$id".toUri()
-                    manager!!.typeUri(uri, listOf("image/png"), true)
+                        val id = ImageTyperState.addRequest(request)
+                        val uri = "content://${FONT_AUTHORITY}/render/$id".toUri()
+                        manager!!.typeUri(uri, listOf("image/png"), true)
+                    }
                     text.value = ""
                     onSent()
                 },

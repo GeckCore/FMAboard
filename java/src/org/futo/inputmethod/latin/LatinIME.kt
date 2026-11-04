@@ -64,6 +64,7 @@ import org.futo.inputmethod.latin.SuggestedWords.SuggestedWordInfo
 import org.futo.inputmethod.latin.fmaboard.BundledModels
 import org.futo.inputmethod.latin.fmaboard.LinkSend
 import org.futo.inputmethod.latin.fmaboard.OcrCapture
+import org.futo.inputmethod.latin.fmaboard.StickerSend
 import org.futo.inputmethod.latin.fmaboard.PersonalAutocorrect
 import org.futo.inputmethod.latin.fmaboard.PhraseMemory
 import org.futo.inputmethod.latin.fmaboard.Rebrand
@@ -663,6 +664,8 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
                 TypingLog.onPaste(text)
             }
         }
+        // FMAboard: a sticker made with "Crear sticker" is sent when its chat's field opens again
+        StickerSend.onStartField(this, info)
         lifecycleScope.launch { uixManager.showUpdateNoticeIfNeeded() }
         updateColorsIfDynamicChanged()
         uixManager.updateEmojiTranslationsIfNeeded()

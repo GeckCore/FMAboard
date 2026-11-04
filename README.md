@@ -16,6 +16,9 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - **Descargar enlace**: descarga un vídeo o su audio desde un enlace y lo envía al chat.
 - **Mensaje de voz**: convierte lo que escribes en un audio con voz natural (Dora o Alex) y lo envía al chat.
   La voz se genera en el móvil, gratis y sin conexión; la primera vez se descarga (142 MB).
+- **Crear sticker**: convierte una foto, vídeo o GIF en sticker de WhatsApp (también animado), con recorte
+  a mano o en rectángulo, quitar fondo (en el móvil), borde blanco, forma y texto. Desde *Compartir*,
+  «Sticker al momento» lo convierte tal cual. Los estilos de fuente también se envían como sticker.
 - **Notas en el portapapeles**, con búsqueda que ignora tildes.
 - **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/): reescribir, responder con tu estilo y pulir el dictado.
 - **Registro de escritura** (JSONL en el propio móvil) para entrenar un modelo de predicción personal (`lm/`). Esquema: [SCHEMA.md](java/src/org/futo/inputmethod/latin/fmaboard/SCHEMA.md).
@@ -61,6 +64,9 @@ Mensaje de voz: [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-
 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) (Apache-2.0), que lo ejecuta en el móvil con ONNX Runtime (MIT).
 El modelo no va en la APK: se descarga al usarlo por primera vez. La conversión de texto a fonemas
 (`SpanishPhonemizer.java`) es propia, para no depender de espeak-ng.
+
+Crear sticker: quitar fondo usa ML Kit Subject Segmentation de Google, que se ejecuta en el móvil
+(el modelo lo instala Google Play Services la primera vez).
 
 ---
 

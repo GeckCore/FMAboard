@@ -601,7 +601,8 @@ class UixManager(private val latinIME: LatinIME) {
     private var persistentStates: HashMap<Action, PersistentActionState?> = hashMapOf()
 
     private var inlineSuggestions: MutableState<List<MutableState<View?>>> = mutableStateOf(emptyList())
-    private val keyboardManagerForAction = UixActionKeyboardManager(this, latinIME)
+    // FMAboard: public so a sticker made outside the keyboard can be sent from LatinIME
+    val keyboardManagerForAction = UixActionKeyboardManager(this, latinIME)
 
     private var mainKeyboardHidden = mutableStateOf(false)
 

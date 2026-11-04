@@ -6,4 +6,6 @@
     <cache-path name="downloads" path="downloads/" />
     <!-- FMAboard: voice messages made from text, before sending -->
     <cache-path name="voice" path="voice/" />
+    <!-- FMAboard: stickers made with "Crear sticker" and the font styles -->
+    <cache-path name="stickers" path="stickers/" />
 </paths>

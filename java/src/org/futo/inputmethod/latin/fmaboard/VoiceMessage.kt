@@ -228,8 +228,7 @@ object VoiceMessage {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val ogg = File(dir, "mensaje-$stamp.ogg")
             try {
-                encodeWith(audio, ogg, MediaFormat.MIMETYPE_AUDIO_OPUS, 32_000,
-                    MediaMuxer.OutputFormat.MUXER_OUTPUT_OGG)
+                encodeOpus(audio, ogg)
                 return ogg
             } catch (e: Exception) {
                 Log.w(TAG, "Opus encoding failed, using AAC", e)
@@ -237,29 +236,86 @@ object VoiceMessage {
             }
         }
         val m4a = File(dir, "mensaje-$stamp.m4a")
-        encodeWith(audio, m4a, MediaFormat.MIMETYPE_AUDIO_AAC, 64_000,
-            MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        encodeAac(audio, m4a)
         return m4a
     }
 
     fun mimeOf(file: File) = if (file.extension == "ogg") "audio/ogg" else "audio/mp4"
 
-    private fun encodeWith(audio: Audio, out: File, mime: String, bitRate: Int, container: Int) {
-        val format = MediaFormat.createAudioFormat(mime, audio.sampleRate, 1).apply {
+    /** Opus at 48 kHz (what voice notes are decoded at), put in an Ogg file by [OggOpusWriter]. */
+    private fun encodeOpus(audio: Audio, out: File) {
+        val rate = 48_000
+        val samples = resample(audio.samples, audio.sampleRate, rate)
+        var writer: OggOpusWriter? = null
+        try {
+            runEncoder(samples, rate, MediaFormat.MIMETYPE_AUDIO_OPUS, 32_000,
+                onFormat = { format ->
+                    // csd-1 is the encoder's delay in nanoseconds: the decoder skips that much
+                    val delayNs = format.getByteBuffer("csd-1")
+                        ?.takeIf { it.remaining() >= 8 }?.order(ByteOrder.LITTLE_ENDIAN)?.getLong(0)
+                    val preSkip = delayNs?.let { (it * rate / 1_000_000_000L).toInt() }
+                        ?.takeIf { it in 0..10_000 } ?: 312
+                    writer = OggOpusWriter(out, preSkip, rate)
+                },
+                onPacket = { packet -> writer?.write(packet) })
+            val w = writer ?: throw VoiceException("No se pudo crear el audio")
+            w.finish(samples.size.toLong())
+            writer = null
+        } finally {
+            writer?.let { try { it.finish(samples.size.toLong()) } catch (_: Exception) {} }
+        }
+        if (out.length() < 100) throw VoiceException("No se pudo crear el audio")
+    }
+
+    private fun encodeAac(audio: Audio, out: File) {
+        val muxer = MediaMuxer(out.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        var track = -1
+        val info = MediaCodec.BufferInfo()
+        var samplesOut = 0L
+        try {
+            runEncoder(audio.samples, audio.sampleRate, MediaFormat.MIMETYPE_AUDIO_AAC, 64_000,
+                onFormat = { format -> track = muxer.addTrack(format); muxer.start() },
+                onPacket = { packet ->
+                    info.set(0, packet.size, samplesOut * 1_000_000L / audio.sampleRate, 0)
+                    muxer.writeSampleData(track, ByteBuffer.wrap(packet), info)
+                    samplesOut += 1024
+                })
+        } finally {
+            try { if (track >= 0) muxer.stop() } catch (_: Exception) {}
+            muxer.release()
+        }
+        if (track < 0 || out.length() == 0L) throw VoiceException("No se pudo crear el audio")
+    }
+
+    /** Linear resampling; plenty for a voice going from 24 to 48 kHz. */
+    private fun resample(src: FloatArray, from: Int, to: Int): FloatArray {
+        if (from == to || src.isEmpty()) return src
+        val n = (src.size.toLong() * to / from).toInt()
+        val step = from.toDouble() / to
+        return FloatArray(n) { i ->
+            val pos = i * step
+            val a = pos.toInt().coerceAtMost(src.size - 1)
+            val b = (a + 1).coerceAtMost(src.size - 1)
+            val t = (pos - a).toFloat()
+            src[a] * (1 - t) + src[b] * t
+        }
+    }
+
+    private fun runEncoder(samples: FloatArray, sampleRate: Int, mime: String, bitRate: Int,
+                           onFormat: (MediaFormat) -> Unit, onPacket: (ByteArray) -> Unit) {
+        val format = MediaFormat.createAudioFormat(mime, sampleRate, 1).apply {
             setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
             if (mime == MediaFormat.MIMETYPE_AUDIO_AAC) {
                 setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
             }
             setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 16_384)
         }
-        val pcm = ByteBuffer.allocate(audio.samples.size * 2).order(ByteOrder.LITTLE_ENDIAN)
-        for (s in audio.samples) pcm.putShort((s.coerceIn(-1f, 1f) * 32767f).toInt().toShort())
+        val pcm = ByteBuffer.allocate(samples.size * 2).order(ByteOrder.LITTLE_ENDIAN)
+        for (s in samples) pcm.putShort((s.coerceIn(-1f, 1f) * 32767f).toInt().toShort())
         pcm.flip()
 
         val codec = MediaCodec.createEncoderByType(mime)
-        val muxer = MediaMuxer(out.absolutePath, container)
-        var track = -1
-        var muxerStarted = false
+        var started = false
         try {
             codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             codec.start()
@@ -273,7 +329,7 @@ object VoiceMessage {
                         val buffer = codec.getInputBuffer(index)!!
                         buffer.clear()
                         val n = minOf(buffer.remaining(), pcm.remaining()) and 1.inv()
-                        val timeUs = samplesQueued * 1_000_000L / audio.sampleRate
+                        val timeUs = samplesQueued * 1_000_000L / sampleRate
                         if (n <= 0) {
                             codec.queueInputBuffer(index, 0, 0, timeUs, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                             inputDone = true
@@ -289,17 +345,16 @@ object VoiceMessage {
                 val outIndex = codec.dequeueOutputBuffer(info, 10_000)
                 when {
                     outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                        track = muxer.addTrack(codec.outputFormat)
-                        muxer.start()
-                        muxerStarted = true
+                        onFormat(codec.outputFormat)
+                        started = true
                     }
                     outIndex >= 0 -> {
                         val data = codec.getOutputBuffer(outIndex)!!
                         val isConfig = info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0
-                        if (!isConfig && info.size > 0 && muxerStarted) {
+                        if (!isConfig && info.size > 0 && started) {
                             data.position(info.offset)
                             data.limit(info.offset + info.size)
-                            muxer.writeSampleData(track, data, info)
+                            onPacket(ByteArray(info.size).also { data.get(it) })
                         }
                         codec.releaseOutputBuffer(outIndex, false)
                         if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) break
@@ -309,10 +364,8 @@ object VoiceMessage {
         } finally {
             try { codec.stop() } catch (_: Exception) {}
             codec.release()
-            try { if (muxerStarted) muxer.stop() } catch (_: Exception) {}
-            muxer.release()
         }
-        if (!muxerStarted || out.length() == 0L) throw VoiceException("No se pudo crear el audio")
+        if (!started) throw VoiceException("No se pudo crear el audio")
     }
 }
 

@@ -12,6 +12,7 @@ import org.futo.inputmethod.latin.fmaboard.AiRewriteAction
 import org.futo.inputmethod.latin.fmaboard.LinkDownloadAction
 import org.futo.inputmethod.latin.fmaboard.OcrAction
 import org.futo.inputmethod.latin.fmaboard.VoiceMessageAction
+import org.futo.inputmethod.latin.fmaboard.StickerAction
 import org.futo.inputmethod.latin.common.Constants
 import org.futo.inputmethod.latin.settings.Settings
 import org.futo.inputmethod.latin.uix.Action
@@ -53,6 +54,7 @@ val AllActionsMap = mapOf(
     "ocr" to OcrAction,
     "download" to LinkDownloadAction,
     "voice_message" to VoiceMessageAction,
+    "sticker" to StickerAction,
 )
 
 val ActionToId = AllActionsMap.entries.associate { it.value to it.key }
