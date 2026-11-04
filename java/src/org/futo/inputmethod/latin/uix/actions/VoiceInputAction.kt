@@ -310,8 +310,13 @@ val VoiceInputAction = Action(icon = R.drawable.mic_fill,
     simplePressImpl = null,
     keepScreenAwake = true,
     persistentState = { VoiceInputPersistentState(it) },
-    windowImpl = { manager, persistentState ->
+    windowImpl = windowImpl@{ manager, persistentState ->
         val locales = manager.getActiveLocales()
+
+        // FMAboard: the phone's speech recognition hears far better than the small offline model
+        if (org.futo.inputmethod.latin.fmaboard.GoogleDictation.shouldUse(manager.getContext())) {
+            return@windowImpl org.futo.inputmethod.latin.fmaboard.GoogleDictationWindow(manager, locales)
+        }
 
         val model = ResourceHelper.tryFindingVoiceInputModelForLocale(manager.getContext(), locales.firstOrNull() ?: Locale.ROOT)
 

@@ -27,6 +27,9 @@ import org.futo.inputmethod.latin.uix.theme.presets.Sunflower
 import org.futo.inputmethod.latin.uix.theme.presets.VoiceInputTheme
 import org.futo.inputmethod.latin.uix.theme.presets.DevTheme
 import org.futo.inputmethod.latin.uix.theme.presets.HighContrastYellow
+import org.futo.inputmethod.latin.uix.theme.presets.FmaAutoTheme
+import org.futo.inputmethod.latin.uix.theme.presets.FmaDarkTheme
+import org.futo.inputmethod.latin.uix.theme.presets.FmaLightTheme
 
 data class ThemeOption(
     val dynamic: Boolean,
@@ -37,6 +40,11 @@ data class ThemeOption(
 )
 
 val ThemeOptions = mapOf(
+    // FMAboard's own themes come first
+    FmaAutoTheme.key to FmaAutoTheme,
+    FmaDarkTheme.key to FmaDarkTheme,
+    FmaLightTheme.key to FmaLightTheme,
+
     DefaultDarkScheme.key to DefaultDarkScheme,
     DefaultLightScheme.key to DefaultLightScheme,
 
@@ -71,11 +79,7 @@ fun defaultThemeOption(context: Context): ThemeOption =
     if(context.resources.getBoolean(R.bool.use_dev_styling)) {
         DevTheme
     } else {
-        if(DynamicSystemTheme.available(context)) {
-            DynamicSystemTheme
-        } else {
-            DefaultDarkScheme
-        }
+        FmaAutoTheme
     }
 
 fun getThemeOption(context: Context, key: String): ThemeOption? {

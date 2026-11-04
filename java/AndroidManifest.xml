@@ -88,7 +88,7 @@
 
         <!-- Activities -->
         <activity android:name=".uix.settings.SettingsActivity"
-             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+             android:theme="@style/FmaSettingsTheme"
              android:icon="@mipmap/ic_launcher"
              android:roundIcon="@mipmap/ic_launcher_round"
              android:launchMode="singleTask"
@@ -315,6 +315,10 @@
     <queries>
         <intent>
             <action android:name="android.view.InputMethod" />
+        </intent>
+        <!-- FMAboard: dictation with the phone's speech recognition -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
         </intent>
     </queries>
 </manifest>

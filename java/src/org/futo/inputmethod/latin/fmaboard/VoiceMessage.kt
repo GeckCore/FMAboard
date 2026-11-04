@@ -243,7 +243,7 @@ object VoiceMessage {
     fun mimeOf(file: File) = if (file.extension == "ogg") "audio/ogg" else "audio/mp4"
 
     /** Opus at 48 kHz (what voice notes are decoded at), put in an Ogg file by [OggOpusWriter]. */
-    private fun encodeOpus(audio: Audio, out: File) {
+    internal fun encodeOpus(audio: Audio, out: File) {
         val rate = 48_000
         val samples = resample(audio.samples, audio.sampleRate, rate)
         var writer: OggOpusWriter? = null

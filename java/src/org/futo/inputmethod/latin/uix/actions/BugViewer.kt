@@ -60,7 +60,8 @@ private val Throwable.rootCause: Throwable?
 
 var CanThrowIfDebug = true
 
-val IsDebug = BuildConfig.DEBUG || (BuildConfig.FLAVOR == "unstable" && CanThrowIfDebug)
+// FMAboard ships the "unstable" flavour to everyone: only real debug builds stop on errors
+val IsDebug = BuildConfig.DEBUG && CanThrowIfDebug
 fun throwIfDebug(ex: Exception) {
     if(IsDebug) {
         throw ex

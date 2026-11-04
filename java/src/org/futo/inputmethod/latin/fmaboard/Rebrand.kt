@@ -5,6 +5,12 @@ import android.os.UserManager
 import android.util.Log
 import androidx.core.content.edit
 import org.futo.inputmethod.latin.uix.PreferenceUtils
+import org.futo.inputmethod.latin.uix.THEME_KEY
+import org.futo.inputmethod.latin.uix.setSetting
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.futo.inputmethod.latin.uix.theme.presets.FmaAutoTheme
 import java.io.File
 
 /**
@@ -18,6 +24,28 @@ object Rebrand {
     /** Read by [TypingLogStore]: copy every log file to the new shared folder, not only new ones. */
     const val PREF_REMIRROR = "fmaboard_remirror"
     const val OLD_MIRROR_ROOT = "AImHuman"
+
+    private const val PREF_FMA_THEME = "fmaboard_theme_applied"
+
+    /** Everyone moves to the FMA theme once, with 0.1.8. Picking another theme afterwards sticks. */
+    @Synchronized
+    @JvmStatic
+    fun applyFmaThemeOnce(context: Context) {
+        val userManager = context.getSystemService(Context.USER_SERVICE) as UserManager
+        if (!userManager.isUserUnlocked) return
+        val prefs = PreferenceUtils.getDefaultSharedPreferences(context)
+        if (prefs.getBoolean(PREF_FMA_THEME, false)) return
+        // Mark it first so it runs once; write in the background (blocking here froze the main thread)
+        prefs.edit { putBoolean(PREF_FMA_THEME, true) }
+        val app = context.applicationContext
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                app.setSetting(THEME_KEY.key, FmaAutoTheme.key)
+            } catch (e: Exception) {
+                Log.e("FMAboardRebrand", "Theme switch failed", e)
+            }
+        }
+    }
 
     @Synchronized
     @JvmStatic

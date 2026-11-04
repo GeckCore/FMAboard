@@ -403,6 +403,7 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         DataStoreHelper.init(this)
 
         Rebrand.migrate(this)
+        Rebrand.applyFmaThemeOnce(this)
         TypingLog.init(this)
         PersonalAutocorrect.init(this)
         PhraseMemory.init(this)

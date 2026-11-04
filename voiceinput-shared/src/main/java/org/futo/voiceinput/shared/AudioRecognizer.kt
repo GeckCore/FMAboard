@@ -549,6 +549,7 @@ class AudioRecognizer(
         }
 
         val floatArray = floatSamples.array().sliceArray(0 until floatSamples.position())
+        LastDictationAudio.put(floatArray)
 
         yield()
         val outputText = try {

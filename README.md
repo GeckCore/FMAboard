@@ -25,7 +25,9 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - **Portapapeles mejorado**: notas propias, búsqueda que ignora tildes, borrar varios clips a la vez, capturas de pantalla e imágenes
   (pegar, sacar texto o hacer sticker), abrir enlaces, quitarles el rastreo (`utm_`, `fbclid`, `si`…)
   y abrir un chat de WhatsApp con un número sin guardarlo en contactos.
-- **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/) o [Gemini](https://aistudio.google.com/apikey): reescribir, responder con tu estilo y pulir el dictado. Eliges cuál usar, o las dos: si una falla o está saturada, responde la otra.
+- **Dictado por voz** con el reconocimiento de voz del móvil (el de Google en la mayoría): entiende bien aunque hables rápido y el texto aparece mientras hablas. Con la IA activada, al terminar corrige ortografía, gramática y puntuación en un par de segundos. Sin conexión, usa el modelo de voz incluido.
+- **Tema FMA** (automático, oscuro y claro), sobrio y con un solo color de acento. El resto de temas siguen disponibles.
+- **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/) o [Gemini](https://aistudio.google.com/apikey): reescribir, responder con tu estilo y corregir el dictado. Eliges cuál usar, o las dos: si una falla o está saturada, responde la otra.
 - **Registro de escritura** (JSONL en el propio móvil) para entrenar un modelo de predicción personal (`lm/`). Esquema: [SCHEMA.md](java/src/org/futo/inputmethod/latin/fmaboard/SCHEMA.md).
 
 ## Privacidad
@@ -33,7 +35,8 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - El registro de escritura se guarda **solo en tu móvil** (y en una copia en `Documentos/FMAboard`). Nunca se envía a ningún sitio.
   Puedes desactivarlo o borrarlo en *Ajustes → Aprendizaje y privacidad*.
 - Nunca se registra lo que escribes en contraseñas, códigos, campos de incógnito ni en los campos que no son de texto.
-- La IA solo se usa cuando la pulsas, y con **tu propia clave** de OpenRouter o de Gemini, que se guarda en el móvil. El código no incluye ninguna clave.
+- El dictado con el reconocimiento de Google envía tu voz a Google, como cualquier teclado que lo use. Se puede desactivar en *Ajustes → Inteligencia artificial* para usar el modelo sin conexión.
+- La IA solo se usa cuando la pulsas o al corregir un dictado (solo se envía el texto), y con **tu propia clave** de OpenRouter o de Gemini, que se guarda en el móvil. El código no incluye ninguna clave.
 
 ## Instalar
 

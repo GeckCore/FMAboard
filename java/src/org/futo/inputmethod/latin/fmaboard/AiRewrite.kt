@@ -2,6 +2,7 @@ package org.futo.inputmethod.latin.fmaboard
 
 import android.content.Context
 import android.util.Base64
+import android.util.Log
 import org.futo.inputmethod.latin.uix.PreferenceUtils
 import org.json.JSONArray
 import org.json.JSONObject
@@ -52,6 +53,11 @@ object AiRewrite {
     // Gemini: Google's "latest" aliases follow the current Flash models, all of which read
     // images. A key from AI Studio without billing stays on the free tier.
     private val GEMINI_MODELS = listOf("gemini-flash-latest", "gemini-flash-lite-latest")
+    // Fixing grammar and punctuation is light work: Lite answers in about a second
+    private val GEMINI_FAST_MODELS = listOf("gemini-flash-lite-latest", "gemini-flash-latest")
+    private const val FAST_DEADLINE_MS = 6_000L
+    // Listening needs the full Flash model; Lite mishears more
+    private val GEMINI_AUDIO_MODELS = listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest")
 
     // A Flash model found through the model list when the aliases above stop existing
     @Volatile private var geminiDiscovered: String? = null
@@ -112,11 +118,12 @@ object AiRewrite {
         complete(context, SYSTEM_PROMPT, "Instrucción: ${style.instruction}\n\n<texto>\n$text\n</texto>")
 
     /** One chat completion with free models. Blocking: run it off the main thread. */
-    fun complete(context: Context, system: String, user: String): String =
-        withFallback(context) { provider ->
+    fun complete(context: Context, system: String, user: String, fast: Boolean = false): String =
+        withFallback(context, geminiFirst = fast) { provider ->
             when (provider) {
                 Provider.OpenRouter -> openRouter(apiKey(context), MODELS, system, user)
-                Provider.Gemini -> gemini(geminiKey(context), system, user, null)
+                Provider.Gemini -> if (fast) gemini(geminiKey(context), system, user, null, GEMINI_FAST_MODELS, true, FAST_DEADLINE_MS)
+                    else gemini(geminiKey(context), system, user, null, GEMINI_MODELS)
             }
         }
 
@@ -132,8 +139,10 @@ object AiRewrite {
             }
         }
 
-    private fun withFallback(context: Context, call: (Provider) -> String): String {
-        val list = providers(context)
+    /** [geminiFirst]: for things that must be quick, Gemini answers in seconds; free OpenRouter queues. */
+    private fun withFallback(context: Context, geminiFirst: Boolean = false, call: (Provider) -> String): String {
+        // Quick jobs: only Gemini when there is a key for it (free OpenRouter can queue for many seconds)
+        val list = providers(context).let { l -> if (geminiFirst && Provider.Gemini in l) listOf(Provider.Gemini) else l }
         if (list.isEmpty()) throw RewriteException(when (mode(context)) {
             Mode.OnlyOpenRouter -> "Falta la clave de OpenRouter (Ajustes → Inteligencia artificial)."
             Mode.OnlyGemini -> "Falta la clave de Gemini (Ajustes → Inteligencia artificial)."
@@ -187,31 +196,74 @@ object AiRewrite {
         }
     }
 
-    private fun gemini(key: String, system: String, user: String, jpeg: ByteArray?): String {
+    private fun gemini(key: String, system: String, user: String, jpeg: ByteArray?): String =
+        gemini(key, system, user, jpeg?.let { "image/jpeg" to it }, GEMINI_MODELS)
+
+    /** Gemini only (OpenRouter's free models do not take audio). Blocking: run it off the main thread. */
+    fun transcribe(context: Context, system: String, user: String, mime: String, audio: ByteArray): String {
+        val key = geminiKey(context)
+        if (key.isEmpty()) throw RewriteException("Falta la clave de Gemini.")
+        return gemini(key, system, user, mime to audio, GEMINI_AUDIO_MODELS, fast = true)
+    }
+
+    // How to switch "thinking" off differs by model generation: 3.x takes a level, 2.5 a budget.
+    // Remember per model which form it accepted, so a dictation never pays for a rejected request.
+    private val thinkingForm = java.util.concurrent.ConcurrentHashMap<String, Int>()
+    private const val THINK_LEVEL = 0
+    private const val THINK_BUDGET = 1
+    private const val THINK_DEFAULT = 2
+
+    /**
+     * [fast]: no "thinking" before answering, and give up after [deadlineMs] (if set) so the
+     * person is never left waiting; the caller then keeps what it had.
+     */
+    private fun gemini(key: String, system: String, user: String, inline: Pair<String, ByteArray>?,
+                       preferred: List<String>, fast: Boolean = false, deadlineMs: Long? = null): String {
         val parts = JSONArray().put(JSONObject().put("text", user))
-        if (jpeg != null) parts.put(JSONObject().put("inline_data", JSONObject()
-            .put("mime_type", "image/jpeg")
-            .put("data", Base64.encodeToString(jpeg, Base64.NO_WRAP))))
-        val body = JSONObject()
-            .put("systemInstruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", system))))
-            .put("contents", JSONArray().put(JSONObject().put("role", "user").put("parts", parts)))
-            .put("generationConfig", JSONObject().put("maxOutputTokens", 8192))
-            .toString().toByteArray(Charsets.UTF_8)
+        if (inline != null) parts.put(JSONObject().put("inline_data", JSONObject()
+            .put("mime_type", inline.first)
+            .put("data", Base64.encodeToString(inline.second, Base64.NO_WRAP))))
+        fun body(form: Int): ByteArray {
+            val config = JSONObject().put("maxOutputTokens", 8192)
+            if (fast) config.put("temperature", 0.2)
+            when (form) {
+                THINK_LEVEL -> config.put("thinkingConfig", JSONObject().put("thinkingLevel", "minimal"))
+                THINK_BUDGET -> config.put("thinkingConfig", JSONObject().put("thinkingBudget", 0))
+            }
+            return JSONObject()
+                .put("systemInstruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", system))))
+                .put("contents", JSONArray().put(JSONObject().put("role", "user").put("parts", parts)))
+                .put("generationConfig", config)
+                .toString().toByteArray(Charsets.UTF_8)
+        }
+        val until = deadlineMs?.let { System.currentTimeMillis() + it }
 
         var lastError = "Gemini no responde."
-        val models = (listOfNotNull(geminiDiscovered) + GEMINI_MODELS).distinct().toMutableList()
+        val models = (preferred + listOfNotNull(geminiDiscovered) + GEMINI_MODELS).distinct().toMutableList()
         var discovered = false
         var i = 0
+        var form = if (fast) thinkingForm[models.first()] ?: THINK_LEVEL else THINK_DEFAULT
         while (i < models.size) {
+            val left = until?.let { it - System.currentTimeMillis() }
+            if (left != null && left < 800) throw RewriteException("Gemini tarda demasiado.")
             val model = models[i++]
+            val sent = form
+            val began = System.currentTimeMillis()
             val connection = post("$GEMINI_BASE/$model:generateContent").apply {
                 setRequestProperty("x-goog-api-key", key)
+                if (left != null) {
+                    connectTimeout = left.toInt().coerceAtMost(5_000)
+                    readTimeout = left.toInt()
+                }
             }
             try {
-                connection.outputStream.use { it.write(body) }
+                connection.outputStream.use { it.write(body(sent)) }
                 val code = connection.responseCode
+                Log.i("FMAboardAI", "Gemini $model form=$sent -> $code in ${System.currentTimeMillis() - began} ms")
                 if (code == 200) {
+                    if (fast) thinkingForm[model] = sent
                     val response = JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
+                    Log.i("FMAboardAI", "Gemini answered with ${response.optString("modelVersion", model)}")
                     val result = geminiText(response)
                     if (result.isNotEmpty()) return result
                     lastError = "Gemini no ha devuelto texto, prueba otra vez."
@@ -221,7 +273,12 @@ object AiRewrite {
                 when (code) {
                     400 -> if (detail.contains("API_KEY_INVALID") || detail.contains("API key not valid"))
                         throw RewriteException("La clave de Gemini no es válida.")
-                        else lastError = "Error de Gemini (400). " + errorMessage(detail)
+                        else if (sent != THINK_DEFAULT) {
+                            // This model won't take that way of switching thinking off: try the next way
+                            form = sent + 1
+                            thinkingForm[model] = form
+                            i--
+                        } else lastError = "Error de Gemini (400). " + errorMessage(detail)
                     401, 403 -> throw RewriteException("La clave de Gemini no es válida o no tiene permiso.")
                     429 -> lastError = "Gemini ha llegado al límite gratis, prueba en un momento."
                     404 -> {
@@ -236,9 +293,14 @@ object AiRewrite {
                     else -> lastError = "Error de Gemini ($code). " + errorMessage(detail)
                 }
             } catch (e: IOException) {
-                throw RewriteException("Sin conexión con Gemini.")
+                Log.w("FMAboardAI", "Gemini $model: ${e.javaClass.simpleName} after ${System.currentTimeMillis() - began} ms")
+                lastError = if (e is java.net.SocketTimeoutException) "Gemini tarda demasiado." else "Sin conexión con Gemini."
             } finally {
                 connection.disconnect()
+            }
+            // Next model: start from what it is known to accept
+            if (i < models.size && fast) {
+                form = thinkingForm[models[i]] ?: THINK_LEVEL
             }
         }
         throw RewriteException(lastError)

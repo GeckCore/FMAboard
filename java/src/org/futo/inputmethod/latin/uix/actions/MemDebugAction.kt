@@ -263,6 +263,7 @@ val MemoryDebugAction = Action(
     name = R.string.action_debug_title,
     simplePressImpl = null,
     canShowKeyboard = true,
+    shownInEditor = false,
     windowImpl = { manager, _ ->
         val latinIme = manager.getLatinIMEForDebug()
         object : ActionWindow() {

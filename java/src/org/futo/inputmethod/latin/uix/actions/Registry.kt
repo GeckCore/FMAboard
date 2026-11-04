@@ -1,5 +1,6 @@
 package org.futo.inputmethod.latin.uix.actions
 
+import org.futo.inputmethod.latin.BuildConfig
 import android.content.Context
 import android.content.res.Resources
 import androidx.collection.mutableIntSetOf
@@ -165,11 +166,15 @@ fun ActionEditorItem.stringRepresentation(): String = when(this) {
 
 fun List<ActionEditorItem>.serializeActionEditorItemListToString(): String = joinToString { it.stringRepresentation() }
 
+/** Debug panels: only debug builds offer them. Saved lists that still have them drop them. */
+val DeveloperOnlyActions: Set<Action> by lazy { setOf(MemoryDebugAction, BugViewerAction) }
+private fun Action.allowedForUser() = BuildConfig.DEBUG || this !in DeveloperOnlyActions
+
 fun String.toActionEditorItems() : List<ActionEditorItem> = split(",").mapNotNull {
     val v = it.trimStart()
     when {
         ActionCategorySepNames.containsKey(v) -> ActionEditorItem.Separator(ActionCategorySepNames[v]!!)
-        AllActionsMap.containsKey(v) -> ActionEditorItem.Item(AllActionsMap[v]!!)
+        AllActionsMap.containsKey(v) && AllActionsMap[v]!!.allowedForUser() -> ActionEditorItem.Item(AllActionsMap[v]!!)
         else -> null
     }
 }
@@ -271,12 +276,12 @@ fun List<Action>.serializeActionListToString(): String = joinToString(separator 
     AllActionsMap.entries.find { it.value == action }!!.key
 }
 
-fun String.toActionList(): List<Action> = split(",").mapNotNull { AllActionsMap[it.trim()] }
+fun String.toActionList(): List<Action> = split(",").mapNotNull { AllActionsMap[it.trim()]?.takeIf { a -> a.allowedForUser() } }
 
 val DefaultActionSettings = mapOf(
     ActionCategory.ActionKey to listOf(EmojiAction),
     ActionCategory.PinnedKey to listOf(VoiceInputAction),
-    ActionCategory.Favorites to listOfNotNull(if(IsDebug) MemoryDebugAction else null, SwitchLanguageAction, UndoAction, RedoAction, TextEditAction, ClipboardHistoryAction, ThemeAction, KeyboardModeAction),
+    ActionCategory.Favorites to listOfNotNull(if(BuildConfig.DEBUG) MemoryDebugAction else null, SwitchLanguageAction, UndoAction, RedoAction, TextEditAction, ClipboardHistoryAction, ThemeAction, KeyboardModeAction),
     ActionCategory.More to listOf(), // Remaining actions get populated automatically by ensureWellFormed
     ActionCategory.Disabled to listOf(MemoryDebugAction, SystemVoiceInputAction, BugViewerAction)
 )

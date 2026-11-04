@@ -11,4 +11,7 @@
     <!-- Not translated upstream -->
     <string name="swipe_settings_title">Escritura deslizante</string>
     <string name="swipe_settings_enable_swipe_typing">Deslizar para escribir</string>
+    <string name="theme_fma_auto">FMA</string>
+    <string name="theme_fma_dark">FMA Oscuro</string>
+    <string name="theme_fma_light">FMA Claro</string>
 </resources>

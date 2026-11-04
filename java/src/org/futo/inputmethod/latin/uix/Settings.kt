@@ -40,7 +40,7 @@ import okio.source
 import org.futo.inputmethod.latin.ActiveSubtype
 import org.futo.inputmethod.latin.Subtypes
 import org.futo.inputmethod.latin.SubtypesSetting
-import org.futo.inputmethod.latin.uix.theme.presets.ClassicMaterialDark
+import org.futo.inputmethod.latin.uix.theme.presets.FmaAutoTheme
 import org.futo.inputmethod.v2keyboard.LayoutManager
 import java.io.File
 
@@ -49,7 +49,7 @@ private object DefaultDataStore : DataStore<Preferences> {
     private var activePreferences = preferencesOf(
         ActiveSubtype.key to "en_US:",
         SubtypesSetting.key to setOf("en_US:"),
-        THEME_KEY.key to ClassicMaterialDark.key,
+        THEME_KEY.key to FmaAutoTheme.key,
         KeyHintsSetting.key to true
     )
 

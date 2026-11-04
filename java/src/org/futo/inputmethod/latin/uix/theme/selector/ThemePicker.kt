@@ -330,7 +330,7 @@ fun ThemePicker(onDeleteCustomTheme: (String) -> Unit, onCustomTheme: () -> Unit
         ThemeOptionKeys.mapNotNull { key ->
             getThemeOption(context, key)?.let { Pair(key, it) }
         }.filter {
-            it.second.available(context)
+            it.second.available(context) && it.second.key != org.futo.inputmethod.latin.uix.theme.presets.DevTheme.key
         }.filter {
             when (isInspecting) {
                 true -> !it.second.dynamic

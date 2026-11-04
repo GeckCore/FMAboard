@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="FmaSettingsTheme" parent="@style/Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/fmaboard_window_background</item>
+        <item name="android:windowSplashScreenBackground">@color/fmaboard_window_background</item>
+    </style>
+</resources>

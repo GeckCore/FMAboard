@@ -255,6 +255,7 @@ class SettingsActivity : ComponentActivity(), DynamicThemeProviderOwner {
             }
         }
 
+        org.futo.inputmethod.latin.fmaboard.Rebrand.applyFmaThemeOnce(this)
         getSettingBlocking(THEME_KEY).let {
             val themeOption = getThemeOption(this, it).orDefault(this@SettingsActivity)
 

@@ -9,8 +9,10 @@
     <string name="fmaboard_delete" translatable="false">Borrar lo que ha guardado</string>
     <string name="fmaboard_delete_subtitle" translatable="false">Elimina para siempre todo lo que ha guardado de tu escritura</string>
     <string name="fmaboard_rewrite_title" translatable="false">Reescribir con IA</string>
-    <string name="fmaboard_ai_dictation" translatable="false">Pulir dictado con IA</string>
-    <string name="fmaboard_ai_dictation_subtitle" translatable="false">Después de dictar por voz, pone la puntuación, quita los \"eh\" y corrige lo mal oído, con tu estilo. El texto dictado se envía a la IA que elijas.</string>
+    <string name="fmaboard_google_voice" translatable="false">Reconocimiento de voz de Google</string>
+    <string name="fmaboard_google_voice_subtitle" translatable="false">Dicta con el reconocimiento de voz del móvil, el mismo que usan otros teclados: entiende mucho mejor y el texto aparece mientras hablas. Tu voz la procesa Google. Desactívalo para usar el modelo sin conexión de FMAboard.</string>
+    <string name="fmaboard_ai_dictation" translatable="false">Dictado mejorado con IA</string>
+    <string name="fmaboard_ai_dictation_subtitle" translatable="false">Al terminar de dictar, la IA corrige la ortografía, la gramática y la puntuación para que el mensaje se entienda bien, sin cambiar lo que dices. Tarda un par de segundos; si tarda más, se queda tal cual. Solo se envía el texto.</string>
     <string name="fmaboard_autocorrect_clear" translatable="false">Olvidar autocorrector personal</string>
     <string name="fmaboard_reply_title" translatable="false">Responder con mi estilo</string>
     <string name="fmaboard_accessibility_label" translatable="false">FMAboard: contexto para responder</string>
@@ -50,4 +52,7 @@
     <string name="fmaboard_about_text" translatable="false">FMAboard es una versión modificada de FUTO Keyboard (© FUTO Holdings, Inc.), hecha por FMA sin ánimo de lucro y distribuida gratis bajo la FUTO Source First License 1.1. No es una versión oficial de FUTO. Si te gusta el teclado, puedes apoyar a FUTO desde la opción de pago de los ajustes.</string>
     <string name="fmaboard_about_license" translatable="false">Licencia (FUTO Source First License 1.1)</string>
     <string name="fmaboard_crashed_text_email" translatable="false">FMAboard se ha cerrado por un error. Si quieres ayudar a arreglarlo, pulsa «Enviar informe»: se abrirá tu correo con el informe adjunto (no incluye tus claves de IA). Puedes enviártelo y subirlo en github.com/GeckCore/FMAboard/issues.</string>
+    <string name="theme_fma_auto">FMA</string>
+    <string name="theme_fma_dark">FMA Dark</string>
+    <string name="theme_fma_light">FMA Light</string>
 </resources>

@@ -1,6 +1,9 @@
 package org.futo.inputmethod.latin.uix.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import org.futo.inputmethod.latin.uix.theme.presets.FmaDarkColors
+import org.futo.inputmethod.latin.uix.theme.presets.FmaLightColors
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -66,8 +69,8 @@ fun iosDividerColor(): Color = MaterialTheme.colorScheme.outlineVariant
 /** Neutral iPhone greys for page, groups and secondary text; the theme keeps its accent colour. */
 @Composable
 fun IosSettingsTheme(content: @Composable () -> Unit) {
-    val base = MaterialTheme.colorScheme
-    val dark = base.background.luminance() < 0.5f
+    val dark = isSystemInDarkTheme()
+    val base = if (dark) FmaDarkColors.base else FmaLightColors.base
     val scheme = remember(base, dark) {
         if (dark) base.copy(
             background = Color(0xFF000000),

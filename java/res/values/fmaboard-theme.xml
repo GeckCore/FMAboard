@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FMAboard: the settings window opens in the same colours as the settings themselves -->
+<resources>
+    <color name="fmaboard_window_background">#F2F2F7</color>
+    <style name="FmaSettingsTheme" parent="@style/Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/fmaboard_window_background</item>
+    </style>
+</resources>

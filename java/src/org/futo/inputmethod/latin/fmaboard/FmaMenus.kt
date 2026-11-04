@@ -179,6 +179,12 @@ val AiMenu = UserSettingsMenu(
 
         userSettingDecorationOnly { SectionHeader("Opciones") },
         userSettingToggleSharedPrefs(
+            title = R.string.fmaboard_google_voice,
+            subtitle = R.string.fmaboard_google_voice_subtitle,
+            key = GoogleDictation.PREF_ENABLED,
+            default = { GoogleDictation.DEFAULT_ENABLED }
+        ),
+        userSettingToggleSharedPrefs(
             title = R.string.fmaboard_ai_dictation,
             subtitle = R.string.fmaboard_ai_dictation_subtitle,
             key = AiDictation.PREF_ENABLED,
@@ -196,7 +202,7 @@ val AiMenu = UserSettingsMenu(
         ),
 
         userSettingDecorationOnly {
-            Tip("Privacidad: la IA solo se usa cuando tú la pides. Se envía el texto que quieres reescribir o la conversación que quieres contestar, y un resumen de tu estilo calculado en el móvil (longitud, tildes, emojis…). Lo que FMAboard ha aprendido de ti nunca se envía. La clave se guarda solo en este móvil.")
+            Tip("Privacidad: la IA solo se usa cuando tú la pides o dictas por voz. Se envía el texto que quieres reescribir, la conversación que quieres contestar o el audio que dictas (nunca en campos de contraseña ni en modo incógnito), y un resumen de tu estilo calculado en el móvil (longitud, tildes, emojis…). Lo que FMAboard ha aprendido de ti nunca se envía. La clave se guarda solo en este móvil.")
         },
     )
 )
