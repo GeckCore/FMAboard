@@ -3,6 +3,7 @@ package org.futo.inputmethod.latin.uix.actions.clipboard
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
+import org.futo.inputmethod.latin.uix.KeyboardManagerForAction
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -34,6 +35,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FilterChip
 import org.futo.inputmethod.latin.fmaboard.ClipboardFragmentPicker
+import org.futo.inputmethod.latin.fmaboard.ClipboardImagePanel
+import org.futo.inputmethod.latin.fmaboard.ClipboardLinks
+import org.futo.inputmethod.latin.fmaboard.ScreenshotClips
+import org.futo.inputmethod.latin.fmaboard.ScreenshotOffer
+import org.futo.inputmethod.latin.fmaboard.StickerSend
 import org.futo.inputmethod.latin.fmaboard.ClipboardNoteEditor
 import org.futo.inputmethod.latin.fmaboard.ClipboardNotes
 import org.futo.inputmethod.latin.fmaboard.LinkDownload
@@ -190,6 +196,27 @@ val ClipboardSaveScreenshots = SettingsKey(
     booleanPreferencesKey("clipboard_save_screenshots"),
     false
 )
+
+// FMAboard: the "show screenshots here" offer was answered
+val ClipboardScreenshotOfferDismissed = SettingsKey(
+    booleanPreferencesKey("fmaboard_clipboard_screenshot_offer_dismissed"),
+    false
+)
+
+/** FMAboard: pastes an image clip into the app (the same as tapping it). */
+internal fun pasteImageClip(manager: KeyboardManagerForAction, context: Context, entry: ClipboardEntry) {
+    val backing = entry.backingFile ?: return
+    if (entry.mimeTypes.isEmpty()) return
+    val request = ClipboardProviderState.addRequest(
+        ClipboardPasteRequest(
+            file = File(context.clipboardDir, backing),
+            mimeType = entry.mimeTypes.first(),
+            expiration = System.currentTimeMillis() + 5L * 60L * 1000L
+        )
+    )
+    val uri = "content://${CLIPBOARD_AUTHORITY}/clip/$request".toUri()
+    manager.typeUri(uri, entry.mimeTypes, true)
+}
 
 val ClipboardLastBackup = SettingsKey(
     longPreferencesKey("clipboard_last_backup"),
@@ -1082,6 +1109,7 @@ val ClipboardHistoryAction = Action(
                     }
                     Text(
                         when {
+                            openedEntry.value?.text == null && openedEntry.value != null -> "Imagen"
                             openedEntry.value != null -> "Elegir qué pegar"
                             noteTarget.value != null -> "Editar"
                             else -> "Nueva nota"
@@ -1266,6 +1294,29 @@ val ClipboardHistoryAction = Action(
                         return
                     }
 
+                    openedEntry.value?.takeIf { it.text == null }?.let { entry ->
+                        // FMAboard: an image clip: paste it, take its text or make it a sticker
+                        val file = entry.getFile(context)
+                        if (file == null) { openedEntry.value = null; return }
+                        val target = manager.getLatinIMEForDebug().currentInputEditorInfo?.packageName
+                        ClipboardImagePanel(file,
+                            onPaste = {
+                                pasteImageClip(manager, context, entry)
+                                clipboardHistoryManager.onPaste(entry)
+                                manager.performHapticAndAudioFeedback(Constants.CODE_OUTPUT_TEXT, view)
+                                openedEntry.value = null
+                            },
+                            onText = {
+                                openedEntry.value = null
+                                OcrCapture.launch(context, target, file.absolutePath)
+                            },
+                            onSticker = {
+                                openedEntry.value = null
+                                StickerSend.launch(context, target, file.absolutePath)
+                            })
+                        return
+                    }
+
                     openedEntry.value?.let { entry ->
                         ClipboardFragmentPicker(
                             text = entry.text ?: "",
@@ -1286,6 +1337,11 @@ val ClipboardHistoryAction = Action(
                                 noteTarget.value = entry
                                 noteText.value = entry.text ?: ""
                             },
+                            onOpenUri = { uri, action ->
+                                openedEntry.value = null
+                                manager.closeActionWindow()
+                                ClipboardLinks.open(context, uri, action)
+                            },
                             onDownload = { link ->
                                 openedEntry.value = null
                                 LinkDownload.launch(context,
@@ -1299,6 +1355,21 @@ val ClipboardHistoryAction = Action(
                         val searchQuery = searchText.value
                         if(searching.value && searchQuery.isBlank()) {
                             return
+                        }
+
+                        // FMAboard: screenshots in the clipboard are off by default; offer them once
+                        val saveScreenshots = useDataStoreValue(ClipboardSaveScreenshots)
+                        val (offerDismissed, setOfferDismissed) = useDataStore(ClipboardScreenshotOfferDismissed)
+                        if(!searching.value && SupportsAddingScreenshots && !offerDismissed
+                            && !(saveScreenshots && ScreenshotClips.hasPermission(context))) {
+                            ScreenshotOffer(
+                                onEnable = {
+                                    setOfferDismissed(true)
+                                    if(!ScreenshotClips.hasPermission(context)) manager.closeActionWindow()
+                                    ScreenshotClips.enable(context)
+                                },
+                                onDismiss = { setOfferDismissed(true) }
+                            )
                         }
 
                         if(!searching.value && clipboardHistoryManager.clipboardHistory.any { it.pinned }) {
@@ -1383,16 +1454,7 @@ val ClipboardHistoryAction = Action(
                                             manager.typeText(it.text)
                                             TypingLog.onPaste(it.text)
                                         } else if(it.backingFile != null && it.mimeTypes.isNotEmpty()) {
-                                            val request = ClipboardProviderState.addRequest(
-                                                ClipboardPasteRequest(
-                                                    file = File(context.clipboardDir, it.backingFile),
-                                                    mimeType = it.mimeTypes.first(),
-                                                    expiration = System.currentTimeMillis() + 5L * 60L * 1000L
-                                                )
-                                            )
-
-                                            val uri = "content://${CLIPBOARD_AUTHORITY}/clip/$request".toUri()
-                                            manager.typeUri(uri, it.mimeTypes, true)
+                                            pasteImageClip(manager, context, it)
                                         }
 
                                         clipboardHistoryManager.onPaste(it)
@@ -1431,15 +1493,7 @@ val ClipboardHistoryAction = Action(
                                         clipboardHistoryManager.onTogglePin(it)
                                         manager.performHapticAndAudioFeedback(Constants.CODE_TAB, view)
                                     }, onOpen = {
-                                        // FMAboard: an image clip (e.g. a screenshot) opens "Texto de imagen"
-                                        if(it.text == null) {
-                                            it.getFile(context)?.let { file ->
-                                                OcrCapture.launch(context,
-                                                    manager.getLatinIMEForDebug().currentInputEditorInfo?.packageName,
-                                                    file.absolutePath)
-                                            }
-                                            return@ClipboardEntryView
-                                        }
+                                        // FMAboard: long press opens the clip (text: pick a part; image: panel)
                                         searching.value = false
                                         openedEntry.value = it
                                         manager.forceActionWindowAboveKeyboard(false)

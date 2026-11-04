@@ -122,6 +122,8 @@ class StickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         targetPackage = intent.getStringExtra(StickerSend.EXTRA_TARGET_PACKAGE)
+        // From the clipboard: a file of our own, passed by path
+        intent.getStringExtra(StickerSend.EXTRA_SOURCE_PATH)?.let { sharedUri = Uri.fromFile(File(it)) }
         if (intent.action == Intent.ACTION_SEND) {
             sharedUri = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
             // Shared from a chat app: the sticker goes back there

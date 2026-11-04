@@ -26,11 +26,15 @@ object StickerSend {
     private class Pending(val file: File, val pkg: String?, val time: Long)
     @Volatile private var pending: Pending? = null
 
-    fun launch(context: Context, targetPackage: String?) {
+    /** Opens Crear sticker; with [sourcePath] (a file of ours, e.g. a clipboard image) it starts from it. */
+    fun launch(context: Context, targetPackage: String?, sourcePath: String? = null) {
         context.startActivity(Intent(context, StickerActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            .putExtra(EXTRA_TARGET_PACKAGE, targetPackage))
+            .putExtra(EXTRA_TARGET_PACKAGE, targetPackage)
+            .putExtra(EXTRA_SOURCE_PATH, sourcePath))
     }
+
+    const val EXTRA_SOURCE_PATH = "fmaboard_sticker_source"
 
     /** Writes a finished sticker to the cache (old ones are cleared out). */
     fun save(context: Context, webp: ByteArray): File {

@@ -114,6 +114,7 @@ fun ClipboardFragmentPicker(
     onSaveNote: (String) -> Unit,
     onEdit: () -> Unit,
     onDownload: ((String) -> Unit)? = null,
+    onOpenUri: ((uri: String, action: String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val sentences = remember(text) { ClipboardNotes.sentences(text) }
@@ -177,6 +178,32 @@ fun ClipboardFragmentPicker(
             }
         } else {
             val link = remember(text) { LinkDownload.findUrl(text) }
+            // A link opens in its app; a phone number opens a WhatsApp chat without saving the contact
+            val anyLink = remember(text) { ClipboardLinks.findUrl(text) }
+            val cleanLink = remember(anyLink) { anyLink?.let { ClipboardLinks.cleanUrl(it) } }
+            val phone = remember(text) { ClipboardLinks.findPhone(text) }
+            if (onOpenUri != null && (anyLink != null || phone != null)) {
+                Row(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (anyLink != null) {
+                        OutlinedButton(onClick = { onOpenUri(anyLink, android.content.Intent.ACTION_VIEW) },
+                            modifier = Modifier.weight(1f)) { Text("Abrir enlace") }
+                        if (cleanLink != null) {
+                            OutlinedButton(onClick = {
+                                val written = if (text.contains(anyLink)) anyLink else anyLink.removePrefix("https://")
+                                onPaste(if (text.contains(written)) text.replaceFirst(written, cleanLink) else cleanLink)
+                            }, modifier = Modifier.weight(1f)) { Text("Pegar sin rastreo") }
+                        }
+                    } else if (phone != null) {
+                        OutlinedButton(onClick = {
+                            onOpenUri(ClipboardLinks.whatsappUrl(context, phone), android.content.Intent.ACTION_VIEW)
+                        }, modifier = Modifier.weight(1f)) { Text("Chat de WhatsApp") }
+                        OutlinedButton(onClick = {
+                            onOpenUri("tel:" + phone.filter { it.isDigit() || it == '+' }, android.content.Intent.ACTION_DIAL)
+                        }, modifier = Modifier.weight(1f)) { Text("Llamar") }
+                    }
+                }
+            }
             Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (link != null && onDownload != null) {
                     OutlinedButton(onClick = { onDownload(link) }, modifier = Modifier.weight(1f)) { Text("Descargar") }
