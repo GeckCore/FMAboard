@@ -22,7 +22,7 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - **Portapapeles mejorado**: notas propias, búsqueda que ignora tildes, borrar varios clips a la vez, capturas de pantalla e imágenes
   (pegar, sacar texto o hacer sticker), abrir enlaces, quitarles el rastreo (`utm_`, `fbclid`, `si`…)
   y abrir un chat de WhatsApp con un número sin guardarlo en contactos.
-- **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/): reescribir, responder con tu estilo y pulir el dictado.
+- **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/) o [Gemini](https://aistudio.google.com/apikey): reescribir, responder con tu estilo y pulir el dictado. Eliges cuál usar, o las dos: si una falla o está saturada, responde la otra.
 - **Registro de escritura** (JSONL en el propio móvil) para entrenar un modelo de predicción personal (`lm/`). Esquema: [SCHEMA.md](java/src/org/futo/inputmethod/latin/fmaboard/SCHEMA.md).
 
 ## Privacidad
@@ -30,14 +30,14 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - El registro de escritura se guarda **solo en tu móvil** (y en una copia en `Documentos/FMAboard`). Nunca se envía a ningún sitio.
   Puedes desactivarlo o borrarlo en *Ajustes → FMAboard*.
 - Nunca se registra lo que escribes en contraseñas, códigos, campos de incógnito ni en los campos que no son de texto.
-- La IA solo se usa cuando la pulsas, y con **tu propia clave** de OpenRouter, que se guarda en el móvil. El código no incluye ninguna clave.
+- La IA solo se usa cuando la pulsas, y con **tu propia clave** de OpenRouter o de Gemini, que se guarda en el móvil. El código no incluye ninguna clave.
 
 ## Instalar
 
 1. Descarga el `.apk` de la última versión en [Releases](https://github.com/GeckCore/FMAboard/releases) e instálalo.
    Android te pedirá permiso para instalar apps de origen desconocido.
 2. Abre FMAboard y sigue los pasos para activarlo como teclado.
-3. Para la IA (opcional), crea una clave gratuita en OpenRouter y pégala en *Ajustes → FMAboard*.
+3. Para la IA (opcional), crea una clave gratuita en OpenRouter o en Google AI Studio (Gemini, sin activar la facturación) y pégala en *Ajustes → FMAboard*.
 
 El español viene listo: la APK incluye el diccionario, el modelo de predicción y el de dictado por voz,
 y se configuran solos la primera vez que usas el teclado con español. Lo que ya hubieras importado no se toca.

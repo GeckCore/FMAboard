@@ -8,6 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -102,23 +108,44 @@ fun triggerExportTypingLog(context: Context) {
 
 // Password field so the keyboard's own typing log skips it.
 @Composable
-private fun AiApiKeyField() {
+private fun AiApiKeyField(pref: String = AiRewrite.PREF_API_KEY, label: String = "Clave de OpenRouter (sk-or-…)") {
     val context = LocalContext.current
     val prefs = remember { PreferenceUtils.getDefaultSharedPreferences(context) }
-    var key by remember { mutableStateOf(prefs.getString(AiRewrite.PREF_API_KEY, "") ?: "") }
+    var key by remember { mutableStateOf(prefs.getString(pref, "") ?: "") }
 
     OutlinedTextField(
         value = key,
         onValueChange = {
             key = it.trim()
-            prefs.edit { putString(AiRewrite.PREF_API_KEY, key) }
+            prefs.edit { putString(pref, key) }
         },
-        label = { Text("Clave de OpenRouter (sk-or-…)") },
+        label = { Text(label) },
         singleLine = true,
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
         modifier = Modifier.fillMaxWidth().padding(16.dp, 8.dp)
     )
+}
+
+// Which AI service answers first, and whether the other one steps in when it fails
+@Composable
+private fun AiProviderChooser() {
+    val context = LocalContext.current
+    val prefs = remember { PreferenceUtils.getDefaultSharedPreferences(context) }
+    var mode by remember { mutableStateOf(AiRewrite.mode(context)) }
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        Text("Qué IA usar", style = MaterialTheme.typography.titleSmall)
+        AiRewrite.Mode.entries.forEach { m ->
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().clickable {
+                    mode = m
+                    prefs.edit { putString(AiRewrite.PREF_PROVIDER, m.id) }
+                }) {
+                RadioButton(selected = mode == m, onClick = null, modifier = Modifier.padding(8.dp))
+                Text(m.label)
+            }
+        }
+    }
 }
 
 private val autocorrectGeneration = mutableIntStateOf(0)
@@ -214,10 +241,14 @@ val TypingLogMenu = UserSettingsMenu(
         ),
 
         userSettingDecorationOnly {
-            Tip("IA (\"Reescribir con IA\" y \"Responder con mi estilo\"): ábrelas desde el menú de acciones (⋯ en la barra de sugerencias). Usan modelos gratuitos de OpenRouter. Solo se envía el texto que eliges reescribir o la conversación que quieres contestar (leída de la pantalla solo al abrir \"Responder con mi estilo\", si activas \"FMAboard: contexto para responder\" en Accesibilidad, o el mensaje copiado), más un resumen de tu estilo calculado en el móvil (longitud, tildes, muletillas, emojis). Tus mensajes guardados nunca se envían.")
+            Tip("IA (\"Reescribir con IA\" y \"Responder con mi estilo\"): ábrelas desde el menú de acciones (⋯ en la barra de sugerencias). Usan modelos gratuitos de OpenRouter o de Gemini (la clave de aistudio.google.com es gratis si no activas la facturación); si eliges las dos, cuando una falla o está saturada se usa la otra. Solo se envía el texto que eliges reescribir o la conversación que quieres contestar (leída de la pantalla solo al abrir \"Responder con mi estilo\", si activas \"FMAboard: contexto para responder\" en Accesibilidad, o el mensaje copiado), más un resumen de tu estilo calculado en el móvil (longitud, tildes, muletillas, emojis). Tus mensajes guardados nunca se envían.")
         },
 
+        userSettingDecorationOnly { AiProviderChooser() },
+
         userSettingDecorationOnly { AiApiKeyField() },
+
+        userSettingDecorationOnly { AiApiKeyField(AiRewrite.PREF_GEMINI_KEY, "Clave de Gemini (AIza…)") },
 
         userSettingToggleSharedPrefs(
             title = R.string.fmaboard_ai_dictation,

@@ -94,7 +94,7 @@ private fun RewriteContents(manager: KeyboardManagerForAction, target: RewriteTa
 
     if (!AiRewrite.hasApiKey(context)) {
         Column(Modifier.padding(8.dp)) {
-            Tip("Para reescribir con IA pega tu clave de OpenRouter en Ajustes → FMAboard.")
+            Tip("Para reescribir con IA pega tu clave de OpenRouter o de Gemini en Ajustes → FMAboard.")
             Button(onClick = {
                 manager.closeActionWindow()
                 SettingsActivity.openToNavDest(context, "fmaboard")
