@@ -50,6 +50,7 @@ import org.futo.inputmethod.latin.fmaboard.AiMenu
 import org.futo.inputmethod.latin.fmaboard.GuideMenu
 import org.futo.inputmethod.latin.fmaboard.TypingLogMenu
 import org.futo.inputmethod.latin.fmaboard.TextShortcutsMenu
+import org.futo.inputmethod.latin.fmaboard.CloudBackupMenu
 import org.futo.inputmethod.latin.uix.settings.pages.NumberRowSettingMenu
 import org.futo.inputmethod.latin.uix.settings.pages.PaymentScreen
 import org.futo.inputmethod.latin.uix.settings.pages.PaymentThankYouScreen
@@ -116,6 +117,7 @@ val SettingsMenus = listOf(
     TypingLogMenu,
     AiMenu,
     TextShortcutsMenu,
+    CloudBackupMenu,
     GuideMenu,
     CreditsScreenLite,
     IMESettingsMenu

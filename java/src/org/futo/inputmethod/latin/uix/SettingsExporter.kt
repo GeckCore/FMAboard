@@ -38,6 +38,7 @@ import org.futo.inputmethod.engine.IMEMessage
 import org.futo.inputmethod.engine.general.ChineseIME
 import org.futo.inputmethod.engine.general.mozcUserProfileDir
 import org.futo.inputmethod.latin.R
+import org.futo.inputmethod.latin.fmaboard.CloudBackup
 import org.futo.inputmethod.latin.utils.readAllBytesCompat
 import org.futo.inputmethod.latin.uix.PreferenceUtils.getDefaultSharedPreferences
 import org.futo.inputmethod.latin.uix.actions.clipboard.ClipboardFileName
@@ -86,6 +87,8 @@ object SettingsExporter {
         val root = JSONObject()
 
         for ((k, any) in prefs.all) {
+            // FMAboard: AI keys and this phone's backup place stay out of the plain file
+            if (CloudBackup.isLocalOnly(k)) continue
             val item = JSONObject()
             when (any) {
                 is Boolean -> {
@@ -127,13 +130,26 @@ object SettingsExporter {
     @Suppress("HardCodedStringLiteral")
     @Throws(Exception::class)
     private fun readSharedPrefs(
+        prefs: SharedPreferences,
         editor: SharedPreferences.Editor,
         inputStream: InputStream
     ) {
         val text = inputStream.readAllBytesCompat().toByteString().utf8()
         val root = JSONObject(text)
 
+        // FMAboard: keep this phone's AI keys and backup place, the copy does not carry them
+        val localOnly = prefs.all.filterKeys { CloudBackup.isLocalOnly(it) }
         editor.clear()
+        localOnly.forEach { (k, v) ->
+            when (v) {
+                is Boolean -> editor.putBoolean(k, v)
+                is Int -> editor.putInt(k, v)
+                is Long -> editor.putLong(k, v)
+                is Float -> editor.putFloat(k, v)
+                is String -> editor.putString(k, v)
+                is Set<*> -> editor.putStringSet(k, v.map { it.toString() }.toSet())
+            }
+        }
 
         val keys = root.keys()
         while (keys.hasNext()) {
@@ -303,6 +319,9 @@ object SettingsExporter {
             themeFile.inputStream().use { it.copyTo(zipOut) }
             zipOut.closeEntry()
         }
+
+        // FMAboard: shortcuts, personal autocorrect, typing log, AI keys (encrypted)
+        CloudBackup.writeExtras(context, zipOut)
     }
 
     private fun String.splitSlash(): String = split("/", limit = 2)[1]
@@ -324,15 +343,8 @@ object SettingsExporter {
                 clipboardFile.delete()
             }
 
-            // delete all transformers
-            transformersDir.listFiles()?.forEach {
-                it.delete()
-            }
-
-            // delete all ext resources
-            extFilesDir.listFiles()?.forEach {
-                it.delete()
-            }
+            // FMAboard: models and downloaded resources are only replaced when the backup
+            // carries them (see below), so a light cloud backup does not wipe them
 
             // delete all user dictionaries
             context.filesDir.listFiles()?.forEach {
@@ -348,7 +360,14 @@ object SettingsExporter {
             // delete all themes
             ZipThemes.customThemesDir(context).listFiles()?.forEach { it.delete() }
         }
+        // Downloaded resources (ext/) are overwritten one by one, never wiped: a light backup
+        // only carries dictionaries, and the voice and bundled models live there too
+        var clearedTransformers = !destructive
         while (entry != null) {
+            if (!clearedTransformers && entry.name.startsWith("transformers/")) {
+                transformersDir.listFiles()?.forEach { it.delete() }
+                clearedTransformers = true
+            }
             when {
                 entry.name == versionFileName -> {}
 
@@ -359,8 +378,9 @@ object SettingsExporter {
                 }
 
                 entry.name == sharedPreferencesFileName -> {
-                    val editor = getDefaultSharedPreferences(context).edit()
-                    readSharedPrefs(editor, zipIn)
+                    val sharedPrefs = getDefaultSharedPreferences(context)
+                    val editor = sharedPrefs.edit()
+                    readSharedPrefs(sharedPrefs, editor, zipIn)
                     @SuppressLint("ApplySharedPref")
                     editor.commit()
                 }
@@ -440,6 +460,10 @@ object SettingsExporter {
                     }
                 }
 
+                CloudBackup.isExtra(entry.name) -> {
+                    CloudBackup.readExtra(context, entry.name, zipIn)
+                }
+
                 entry.name.startsWith("themes/") -> {
                     themesDir.mkdirs()
 
@@ -459,6 +483,7 @@ object SettingsExporter {
             entry = zipIn.nextEntry
         }
 
+        CloudBackup.afterRestore(context)
         GlobalIMEMessage.tryEmit(IMEMessage.ReloadResources)
     }
 

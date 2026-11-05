@@ -18,6 +18,8 @@
     <string name="fmaboard_translate_title" translatable="false">Traducir</string>
     <string name="fmaboard_shortcuts_title" translatable="false">Atajos de texto</string>
     <string name="fmaboard_shortcuts_subtitle" translatable="false">Escribe «dir» y se pone tu dirección</string>
+    <string name="fmaboard_backup_title" translatable="false">Copia de seguridad</string>
+    <string name="fmaboard_backup_subtitle" translatable="false">En tu Google Drive u OneDrive, para cambiar de móvil</string>
     <string name="fmaboard_accessibility_label" translatable="false">FMAboard: contexto para responder</string>
     <string name="fmaboard_accessibility_description" translatable="false">Solo cuando abres \"Responder con mi estilo\" o \"Traducir\" en el teclado, lee los mensajes visibles en pantalla para tener en cuenta la conversación. No hace nada en segundo plano ni guarda lo que lee. El texto leído se envía a un modelo gratuito (OpenRouter o Gemini) para generar las respuestas o la traducción.</string>
     <string name="fmaboard_ocr_title" translatable="false">Texto de imagen</string>

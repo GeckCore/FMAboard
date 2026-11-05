@@ -75,6 +75,13 @@ object TextShortcuts {
 
     fun all(context: Context): List<Shortcut> { init(context); return list }
 
+    /** After restoring a backup, the file on disk has changed. */
+    fun reload(context: Context) {
+        val f = File(context.filesDir, FILE_NAME)
+        file = f
+        load(f)
+    }
+
     /**
      * Letters and digits, optionally after one symbol: "dir", or "/mama" so that typing the
      * plain word "mama" is left alone.

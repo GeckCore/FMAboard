@@ -46,6 +46,17 @@ object PersonalAutocorrect {
         executor.execute { load(f) }
     }
 
+    /** After restoring a backup, the file on disk has changed. */
+    fun reload(context: Context) {
+        val f = File(context.filesDir, FILE_NAME)
+        file = f
+        executor.submit {
+            synchronized(this) { keep.clear(); fixes.clear() }
+            loaded = false
+            load(f)
+        }.get()
+    }
+
     /** For the settings screen, which may open before the keyboard has loaded the rules. */
     fun rulesBlocking(context: Context): Rules {
         init(context)
