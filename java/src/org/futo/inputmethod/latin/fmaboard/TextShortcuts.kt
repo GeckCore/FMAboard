@@ -63,6 +63,7 @@ object TextShortcuts {
     // JSON-escaped forms of the texts, to hide them in typing log lines
     @Volatile private var redactions: List<String> = emptyList()
     @Volatile private var fieldAllowed = false
+    @Volatile private var hasSymbols = false
 
     @JvmStatic
     fun init(context: Context) {
@@ -74,8 +75,31 @@ object TextShortcuts {
 
     fun all(context: Context): List<Shortcut> { init(context); return list }
 
-    /** A shortcut word may only have letters and digits (it is typed as one word). */
-    fun isValidKey(key: String) = key.length in 2..MAX_KEY && key.all { it.isLetterOrDigit() }
+    /**
+     * Letters and digits, optionally after one symbol: "dir", or "/mama" so that typing the
+     * plain word "mama" is left alone.
+     */
+    fun isValidKey(key: String): Boolean {
+        if (key.length !in 2..MAX_KEY || key.any { it.isWhitespace() }) return false
+        val rest = if (hasSymbol(key)) key.substring(1) else key
+        return rest.isNotEmpty() && rest.all { it.isLetterOrDigit() }
+    }
+
+    /** Starts with a symbol, like "/mama": swapped by the space bar, not as a correction. */
+    fun hasSymbol(key: String) = key.isNotEmpty() && !key[0].isLetterOrDigit()
+
+    /** The text typed since the last space or line break. */
+    @JvmStatic
+    fun lastToken(before: CharSequence?): String = before?.toString()?.takeLastWhile { !it.isWhitespace() } ?: ""
+
+    /** The text of a symbol shortcut that was just typed (right before the cursor), or null. */
+    @JvmStatic
+    fun symbolExpansion(before: CharSequence?): String? {
+        if (!fieldAllowed || !hasSymbols) return null
+        val token = lastToken(before)
+        if (token.length < 2 || !hasSymbol(token)) return null
+        return map[token.lowercase(Locale.ROOT)]
+    }
 
     fun put(context: Context, old: String?, shortcut: Shortcut) {
         init(context)
@@ -91,6 +115,7 @@ object TextShortcuts {
     private fun apply(items: List<Shortcut>) {
         list = items
         map = items.associate { it.key.lowercase(Locale.ROOT) to it.text }
+        hasSymbols = items.any { hasSymbol(it.key) }
         redactions = items.map { it.text }.filter { it.length >= 4 }.distinct()
             .sortedByDescending { it.length }
             .map { JSONObject.quote(it).let { q -> q.substring(1, q.length - 1) } }
@@ -173,9 +198,10 @@ private fun ShortcutDialog(initial: TextShortcuts.Shortcut?, onDismiss: () -> Un
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = key, onValueChange = { key = it.trim().take(TextShortcuts.MAX_KEY) },
-                    label = { Text("Atajo (lo que escribes)") }, placeholder = { Text("dir") },
+                    label = { Text("Atajo (lo que escribes)") }, placeholder = { Text("/dir") },
                     singleLine = true, isError = key.isNotEmpty() && !keyOk,
-                    supportingText = { if (key.isNotEmpty() && !keyOk) Text("Solo letras y números, sin espacios, de 2 a ${TextShortcuts.MAX_KEY}.") },
+                    supportingText = { Text(if (key.isNotEmpty() && !keyOk) "Letras y números, sin espacios; puede empezar por un símbolo (/mama)."
+                        else "Empieza por un símbolo (/mama) para que solo salte con él.") },
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None, autoCorrectEnabled = false),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -215,7 +241,7 @@ private fun ShortcutsList() {
             Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
         }
     }
-    IosFootnote("Escribe el atajo y pulsa espacio: se cambia por el texto. Si no lo querías, pulsa borrar y vuelve a ser el atajo.")
+    IosFootnote("Escribe el atajo y pulsa espacio: se cambia por el texto. Con un símbolo delante (/mama, #casa) solo salta cuando lo escribes así, no con la palabra normal. Si un atajo sin símbolo saltó sin querer, pulsa borrar y vuelve a ser la palabra.")
 
     if (adding || editing != null) {
         val initial = editing
@@ -241,7 +267,7 @@ val TextShortcutsMenu = UserSettingsMenu(
     navPath = "fmaboardShortcuts", registerNavPath = true,
     settings = listOf(
         userSettingDecorationOnly {
-            Tip("Guarda textos que escribes a menudo y ponlos con una palabra corta: «dir» para tu dirección, «cbu» para tus datos de cuenta, «mail» para tu correo. Se guardan solo en este móvil y nunca quedan en el registro de escritura.")
+            Tip("Guarda textos que escribes a menudo y ponlos con una palabra corta: «/dir» para tu dirección, «/cbu» para tus datos de cuenta, «/mama» para el número de tu madre. Se guardan solo en este móvil y nunca quedan en el registro de escritura.")
         },
         userSettingDecorationOnly { ShortcutsList() },
     )

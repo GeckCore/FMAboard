@@ -17,6 +17,7 @@
 package org.futo.inputmethod.latin.inputlogic;
 
 import org.futo.inputmethod.latin.fmaboard.PersonalAutocorrect;
+import org.futo.inputmethod.latin.fmaboard.TextShortcuts;
 import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -1211,6 +1212,26 @@ public final class InputLogic {
     private void handleSeparatorEvent(final Event event, final InputTransaction inputTransaction) {
         final int codePoint = event.mCodePoint;
         final SettingsValues settingsValues = inputTransaction.mSettingsValues;
+        // FMAboard: a text shortcut that starts with a symbol ("/mama"): space swaps it for its text
+        if (Constants.CODE_SPACE == codePoint
+                && !mWordComposer.isCursorFrontOrMiddleOfComposingWord()) {
+            final CharSequence before = mConnection.getTextBeforeCursor(TextShortcuts.MAX_KEY + 2, 0);
+            final String expansion = TextShortcuts.symbolExpansion(before);
+            if (expansion != null) {
+                final int tokenLength = TextShortcuts.lastToken(before).length();
+                if (mWordComposer.isComposingWord()) {
+                    mConnection.finishComposingText();
+                    resetComposingState(true);
+                }
+                mConnection.deleteTextBeforeCursor(tokenLength);
+                mConnection.commitText(expansion + " ", 1);
+                mSpaceState = SpaceState.NONE;
+                inputTransaction.setDidAffectContents();
+                inputTransaction.setRequiresUpdateSuggestions();
+                inputTransaction.requireShiftUpdate(InputTransaction.SHIFT_UPDATE_NOW);
+                return;
+            }
+        }
         final boolean wasComposingWord = mWordComposer.isComposingWord();
         // We avoid sending spaces in languages without spaces if we were composing.
         final boolean shouldAvoidSendingCode = Constants.CODE_SPACE == codePoint
