@@ -4,6 +4,8 @@ import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Rect
+import android.graphics.RectF
+import android.os.Bundle
 import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -62,13 +64,18 @@ class ScreenContextService : AccessibilityService() {
             collect(root, lines)
             if (lines.isEmpty()) return null
 
-            val midX = screen.centerX()
-            val text = lines
+                val text = lines
                 .sortedWith(compareBy({ it.first.top }, { it.first.left }))
                 .map { (bounds, t) ->
+                    // Which side the text leans to: right is the user's, left the other person's.
+                    // Text running from the left edge across (a long reply) is theirs too.
+                    val w = screen.width()
+                    val leftGap = bounds.left - screen.left
+                    val rightGap = screen.right - bounds.right
                     val side = when {
-                        bounds.left > midX - screen.width() / 10 -> "Yo"
-                        bounds.right < midX + screen.width() / 10 -> "Otro"
+                        leftGap - rightGap > w / 20 -> "Yo"
+                        rightGap - leftGap > w / 20 -> "Otro"
+                        leftGap < w / 10 -> "Otro"
                         else -> null
                     }
                     if (side != null) "$side: $t" else t
@@ -78,6 +85,33 @@ class ScreenContextService : AccessibilityService() {
             return text.takeLast(MAX_CHARS).takeIf { it.isNotBlank() }
         }
 
+        /**
+         * Where the letters really are. A text box can span the whole width while its text sits on
+         * one side (Gemini, many Compose apps), so ask for the position of the characters when the
+         * app offers it and fall back to the box.
+         */
+        private fun textBounds(node: AccessibilityNodeInfo, text: String): Rect {
+            val box = Rect().also { node.getBoundsInScreen(it) }
+            val key = AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
+            if (!node.availableExtraData.contains(key)) return box
+            return try {
+                val length = minOf(text.length, 200)
+                val args = Bundle().apply {
+                    putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
+                    putInt(AccessibilityNodeInfo.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH, length)
+                }
+                if (!node.refreshWithExtraData(key, args)) return box
+                @Suppress("DEPRECATION")
+                val rects = node.extras.getParcelableArray(key)?.filterIsInstance<RectF>()?.filter { !it.isEmpty }
+                if (rects.isNullOrEmpty()) return box
+                val letters = Rect(rects.minOf { it.left }.toInt(), rects.minOf { it.top }.toInt(),
+                    rects.maxOf { it.right }.toInt(), rects.maxOf { it.bottom }.toInt())
+                if (letters.width() > 0) letters else box
+            } catch (e: Exception) {
+                box
+            }
+        }
+
         private fun collect(node: AccessibilityNodeInfo, out: MutableList<Pair<Rect, String>>) {
             if (!node.isVisibleToUser) return
             // The field being typed in is the user's draft, read separately
@@ -85,7 +119,9 @@ class ScreenContextService : AccessibilityService() {
             val text = node.text?.toString()?.trim()
             // Skip timestamps ("14:02") and tiny UI labels
             if (text != null && text.length > 1 && !TIME.matches(text)) {
-                out.add(Rect().also { node.getBoundsInScreen(it) } to text)
+                // One message per line: a message with several paragraphs must not lose its
+                // "Yo:"/"Otro:" mark after the first line break
+                out.add(textBounds(node, text) to text.replace(Regex("\\s*\\n\\s*"), " "))
             }
             for (i in 0 until node.childCount) {
                 node.getChild(i)?.let { collect(it, out) }

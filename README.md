@@ -26,6 +26,7 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
   (pegar, sacar texto o hacer sticker), abrir enlaces, quitarles el rastreo (`utm_`, `fbclid`, `si`…)
   y abrir un chat de WhatsApp con un número sin guardarlo en contactos.
 - **Dictado por voz** con el reconocimiento de voz del móvil (el de Google en la mayoría): entiende bien aunque hables rápido y el texto aparece mientras hablas. Con la IA activada, al terminar corrige ortografía, gramática y puntuación en un par de segundos. Sin conexión, usa el modelo de voz incluido.
+- **Traducir** para chatear en otro idioma (coreano, inglés, alemán…): tu mensaje se traduce al momento con Google Translate y lo pones con un toque; si una frase hecha no sale bien, «Traducir con IA» la entiende por el contexto. Con la IA, los mensajes de la otra persona aparecen en español. En automático usa el idioma de la otra persona.
 - **Tema FMA** (automático, oscuro y claro), sobrio y con un solo color de acento. El resto de temas siguen disponibles.
 - **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/) o [Gemini](https://aistudio.google.com/apikey): reescribir, responder con tu estilo y corregir el dictado. Eliges cuál usar, o las dos: si una falla o está saturada, responde la otra.
 - **Registro de escritura** (JSONL en el propio móvil) para entrenar un modelo de predicción personal (`lm/`). Esquema: [SCHEMA.md](java/src/org/futo/inputmethod/latin/fmaboard/SCHEMA.md).
@@ -36,6 +37,7 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
   Puedes desactivarlo o borrarlo en *Ajustes → Aprendizaje y privacidad*.
 - Nunca se registra lo que escribes en contraseñas, códigos, campos de incógnito ni en los campos que no son de texto.
 - El dictado con el reconocimiento de Google envía tu voz a Google, como cualquier teclado que lo use. Se puede desactivar en *Ajustes → Inteligencia artificial* para usar el modelo sin conexión.
+- *Traducir* envía tu mensaje a Google Translate (sin clave); sin conexión usa el traductor del móvil. Para ver sus mensajes en español lee los mensajes visibles en pantalla (solo al abrirlo, con el permiso de Accesibilidad) y los envía a la IA.
 - La IA solo se usa cuando la pulsas o al corregir un dictado (solo se envía el texto), y con **tu propia clave** de OpenRouter o de Gemini, que se guarda en el móvil. El código no incluye ninguna clave.
 
 ## Instalar
@@ -75,6 +77,9 @@ El modelo no va en la APK: se descarga al usarlo por primera vez. La conversión
 
 Crear sticker: quitar fondo usa ML Kit Subject Segmentation de Google, que se ejecuta en el móvil
 (el modelo lo instala Google Play Services la primera vez).
+
+Traducir: sin conexión usa ML Kit Translation y Language Identification de Google, en el móvil
+(cada idioma se descarga una vez, unos 30 MB).
 
 ---
 

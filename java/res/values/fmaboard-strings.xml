@@ -15,8 +15,9 @@
     <string name="fmaboard_ai_dictation_subtitle" translatable="false">Al terminar de dictar, la IA corrige la ortografía, la gramática y la puntuación para que el mensaje se entienda bien, sin cambiar lo que dices. Tarda un par de segundos; si tarda más, se queda tal cual. Solo se envía el texto.</string>
     <string name="fmaboard_autocorrect_clear" translatable="false">Olvidar autocorrector personal</string>
     <string name="fmaboard_reply_title" translatable="false">Responder con mi estilo</string>
+    <string name="fmaboard_translate_title" translatable="false">Traducir</string>
     <string name="fmaboard_accessibility_label" translatable="false">FMAboard: contexto para responder</string>
-    <string name="fmaboard_accessibility_description" translatable="false">Solo cuando abres \"Responder con mi estilo\" en el teclado, lee los mensajes visibles en pantalla para que las respuestas tengan en cuenta la conversación. No hace nada en segundo plano ni guarda lo que lee. El texto leído se envía a un modelo gratuito (OpenRouter o Gemini) para generar las respuestas.</string>
+    <string name="fmaboard_accessibility_description" translatable="false">Solo cuando abres \"Responder con mi estilo\" o \"Traducir\" en el teclado, lee los mensajes visibles en pantalla para tener en cuenta la conversación. No hace nada en segundo plano ni guarda lo que lee. El texto leído se envía a un modelo gratuito (OpenRouter o Gemini) para generar las respuestas o la traducción.</string>
     <string name="fmaboard_ocr_title" translatable="false">Texto de imagen</string>
     <string name="fmaboard_download_title" translatable="false">Descargar enlace</string>
     <string name="fmaboard_voice_title" translatable="false">Mensaje de voz</string>

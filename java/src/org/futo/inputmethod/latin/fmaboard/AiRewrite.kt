@@ -54,7 +54,10 @@ object AiRewrite {
     // images. A key from AI Studio without billing stays on the free tier.
     private val GEMINI_MODELS = listOf("gemini-flash-latest", "gemini-flash-lite-latest")
     // Fixing grammar and punctuation is light work: Lite answers in about a second
+    // Each model has its own free quota, so a busy or rate-limited one falls through to the next
     private val GEMINI_FAST_MODELS = listOf("gemini-flash-lite-latest", "gemini-flash-latest")
+    // A single slow attempt may not use up the whole deadline: leave room for the next model
+    private const val FAST_ATTEMPT_MS = 4_000
     private const val FAST_DEADLINE_MS = 6_000L
     // Listening needs the full Flash model; Lite mishears more
     private val GEMINI_AUDIO_MODELS = listOf("gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest")
@@ -118,11 +121,16 @@ object AiRewrite {
         complete(context, SYSTEM_PROMPT, "Instrucción: ${style.instruction}\n\n<texto>\n$text\n</texto>")
 
     /** One chat completion with free models. Blocking: run it off the main thread. */
-    fun complete(context: Context, system: String, user: String, fast: Boolean = false): String =
-        withFallback(context, geminiFirst = fast) { provider ->
+    /**
+     * [fast]: light models without thinking, giving up after [deadlineMs]. With [alsoOpenRouter]
+     * OpenRouter is still tried after Gemini (for things worth a few more seconds, like translating).
+     */
+    fun complete(context: Context, system: String, user: String, fast: Boolean = false,
+                 deadlineMs: Long = FAST_DEADLINE_MS, alsoOpenRouter: Boolean = false): String =
+        withFallback(context, geminiFirst = fast, geminiOnly = fast && !alsoOpenRouter) { provider ->
             when (provider) {
                 Provider.OpenRouter -> openRouter(apiKey(context), MODELS, system, user)
-                Provider.Gemini -> if (fast) gemini(geminiKey(context), system, user, null, GEMINI_FAST_MODELS, true, FAST_DEADLINE_MS)
+                Provider.Gemini -> if (fast) gemini(geminiKey(context), system, user, null, GEMINI_FAST_MODELS, true, deadlineMs)
                     else gemini(geminiKey(context), system, user, null, GEMINI_MODELS)
             }
         }
@@ -140,9 +148,16 @@ object AiRewrite {
         }
 
     /** [geminiFirst]: for things that must be quick, Gemini answers in seconds; free OpenRouter queues. */
-    private fun withFallback(context: Context, geminiFirst: Boolean = false, call: (Provider) -> String): String {
-        // Quick jobs: only Gemini when there is a key for it (free OpenRouter can queue for many seconds)
-        val list = providers(context).let { l -> if (geminiFirst && Provider.Gemini in l) listOf(Provider.Gemini) else l }
+    private fun withFallback(context: Context, geminiFirst: Boolean = false, geminiOnly: Boolean = geminiFirst,
+                             call: (Provider) -> String): String {
+        // Quick jobs: Gemini first, or only Gemini when it has a key (free OpenRouter can queue for many seconds)
+        val list = providers(context).let { l ->
+            when {
+                !geminiFirst || Provider.Gemini !in l -> l
+                geminiOnly -> listOf(Provider.Gemini)
+                else -> listOf(Provider.Gemini) + (l - Provider.Gemini)
+            }
+        }
         if (list.isEmpty()) throw RewriteException(when (mode(context)) {
             Mode.OnlyOpenRouter -> "Falta la clave de OpenRouter (Ajustes → Inteligencia artificial)."
             Mode.OnlyGemini -> "Falta la clave de Gemini (Ajustes → Inteligencia artificial)."
@@ -252,8 +267,9 @@ object AiRewrite {
             val connection = post("$GEMINI_BASE/$model:generateContent").apply {
                 setRequestProperty("x-goog-api-key", key)
                 if (left != null) {
-                    connectTimeout = left.toInt().coerceAtMost(5_000)
-                    readTimeout = left.toInt()
+                    val attempt = if (i < models.size) left.coerceAtMost(FAST_ATTEMPT_MS.toLong()) else left
+                    connectTimeout = attempt.toInt().coerceAtMost(5_000)
+                    readTimeout = attempt.toInt()
                 }
             }
             try {
