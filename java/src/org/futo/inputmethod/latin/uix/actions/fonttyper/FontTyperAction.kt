@@ -340,15 +340,15 @@ internal fun FontTyperContents(
                     // FMAboard: sent as a real WhatsApp sticker (512×512 WebP signed "FMAboard")
                     // where the app takes them, so every style arrives as a sticker
                     val toSend = text.value
-                    val stickerMime = StickerSend.mimeFor { manager!!.appSupportsImageInsertion(it, true) }
-                    if (stickerMime != null) {
-                        manager!!.getLifecycleScope().launch {
+                    val takesWebp = manager!!.appSupportsImageInsertion("image/webp", true)
+                    if (takesWebp) {
+                        manager.getLifecycleScope().launch {
                             val file = withContext(Dispatchers.Default) {
                                 currRenderer.render(context, toSend)?.let {
                                     StickerSend.save(context, StickerMaker.fromImage(it))
                                 }
                             }
-                            if (file != null) manager.typeUri(StickerSend.uriFor(context, file), listOf(stickerMime), true)
+                            if (file != null) StickerSend.send(manager, file, ignoreConnectionOverride = true)
                         }
                     } else {
                         val request = ImageTypeRequest(
