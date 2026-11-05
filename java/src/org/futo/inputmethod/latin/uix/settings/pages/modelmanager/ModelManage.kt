@@ -58,7 +58,7 @@ fun DamagedModelScreen(model: ModelInfoLoader, navController: NavHostController 
             }
         )
         NavigationItem(
-            title = "Export to file",
+            title = "Exportar a un archivo",
             style = NavigationItemStyle.Misc,
             navigate = { triggerModelExport(context, model.path) }
         )
@@ -179,7 +179,7 @@ fun ManageModelScreen(model: ModelInfo = PreviewModels[0], navController: NavHos
         ScreenTitle("Actions")
 
         NavigationItem(
-            title = "Export to file",
+            title = "Exportar a un archivo",
             style = NavigationItemStyle.Misc,
             navigate = {
                 if(model.finetune_count > 0) {
@@ -192,7 +192,7 @@ fun ManageModelScreen(model: ModelInfo = PreviewModels[0], navController: NavHos
 
         if(finetuningEnabled.value) {
             NavigationItem(
-                title = "Finetune model",
+                title = "Ajustar el modelo",
                 style = NavigationItemStyle.Misc,
                 navigate = {
                     navController.navigate("finetune/${model.path.urlEncode()}")

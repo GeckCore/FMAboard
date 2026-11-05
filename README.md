@@ -27,6 +27,8 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
   y abrir un chat de WhatsApp con un número sin guardarlo en contactos.
 - **Dictado por voz** con el reconocimiento de voz del móvil (el de Google en la mayoría): entiende bien aunque hables rápido y el texto aparece mientras hablas. Con la IA activada, al terminar corrige ortografía, gramática y puntuación en un par de segundos. Sin conexión, usa el modelo de voz incluido.
 - **Traducir** para chatear en otro idioma (coreano, inglés, alemán…): tu mensaje se traduce al momento con Google Translate y lo pones con un toque; si una frase hecha no sale bien, «Traducir con IA» la entiende por el contexto. Con la IA, los mensajes de la otra persona aparecen en español. En automático usa el idioma de la otra persona.
+- **Atajos de texto**: escribe «dir» y se pone tu dirección, «cbu» tus datos de cuenta… Se guardan solo en el móvil y lo que escriben nunca queda en el registro.
+- **Aviso de nuevas versiones** en los ajustes, con el enlace para descargarla de GitHub.
 - **Tema FMA** (automático, oscuro y claro), sobrio y con un solo color de acento. El resto de temas siguen disponibles.
 - **IA opcional** con modelos gratuitos de [OpenRouter](https://openrouter.ai/) o [Gemini](https://aistudio.google.com/apikey): reescribir, responder con tu estilo y corregir el dictado. Eliges cuál usar, o las dos: si una falla o está saturada, responde la otra.
 - **Registro de escritura** (JSONL en el propio móvil) para entrenar un modelo de predicción personal (`lm/`). Esquema: [SCHEMA.md](java/src/org/futo/inputmethod/latin/fmaboard/SCHEMA.md).

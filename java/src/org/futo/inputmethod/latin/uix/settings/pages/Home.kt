@@ -42,6 +42,7 @@ import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.fmaboard.AiHomeEntry
 import org.futo.inputmethod.latin.fmaboard.GuideMenu
 import org.futo.inputmethod.latin.fmaboard.TypingLogMenu
+import org.futo.inputmethod.latin.fmaboard.TextShortcutsMenu
 import org.futo.inputmethod.latin.settings.Settings
 import org.futo.inputmethod.latin.uix.LocalNavController
 import org.futo.inputmethod.latin.uix.SYSTEM_VOICE_INPUT_PACKAGE
@@ -99,6 +100,8 @@ val HomeScreenLite = UserSettingsMenu(
 
         },
 
+        userSettingDecorationOnly { org.futo.inputmethod.latin.fmaboard.FmaUpdateBanner() },
+
         header("Lo más usado"),
         quickToggle(R.string.auto_correction, Settings.PREF_AUTO_CORRECTION, R.drawable.icon_spellcheck, Ios.Blue) { true },
         quickToggle(R.string.auto_cap, Settings.PREF_AUTO_CAP, R.drawable.fmaboard_caps, Ios.Indigo) { true },
@@ -139,6 +142,7 @@ val HomeScreenLite = UserSettingsMenu(
 
         header("FMAboard"),
         AiHomeEntry,
+        nav(R.string.fmaboard_shortcuts_title, TextShortcutsMenu.navPath, R.drawable.fmaboard_caps, Ios.Teal, R.string.fmaboard_shortcuts_subtitle),
         nav(R.string.fmaboard_title, TypingLogMenu.navPath, R.drawable.eye, Ios.Blue),
         nav(R.string.fmaboard_guide_title, GuideMenu.navPath, R.drawable.book, Ios.Orange),
         nav(R.string.action_settings_title, "actions", R.drawable.smile, Ios.Yellow),

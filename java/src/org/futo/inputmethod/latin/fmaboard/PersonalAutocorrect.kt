@@ -84,6 +84,8 @@ object PersonalAutocorrect {
         // Case-only changes count too ("mua" -> "MUA")
         val key = typed.trim().lowercase(Locale.ROOT)
         if (key.isEmpty() || typed.trim() == committed.trim()) return
+        // Undoing a text shortcut is not a correction to learn from
+        if (TextShortcuts.isExpansion(committed.trim())) return
         synchronized(this) {
             keep[key] = (keep[key] ?: 0) + 1
             fixes.remove(key)

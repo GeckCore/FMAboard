@@ -217,7 +217,7 @@ fun SetupDirectBootWarning() {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Text("Read more information")
+                Text("Más información")
             }
 
             Button(

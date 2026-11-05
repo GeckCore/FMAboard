@@ -65,6 +65,7 @@ import org.futo.inputmethod.latin.fmaboard.BundledModels
 import org.futo.inputmethod.latin.fmaboard.LinkSend
 import org.futo.inputmethod.latin.fmaboard.OcrCapture
 import org.futo.inputmethod.latin.fmaboard.StickerSend
+import org.futo.inputmethod.latin.fmaboard.TextShortcuts
 import org.futo.inputmethod.latin.fmaboard.PersonalAutocorrect
 import org.futo.inputmethod.latin.fmaboard.PhraseMemory
 import org.futo.inputmethod.latin.fmaboard.Rebrand
@@ -406,6 +407,7 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         Rebrand.applyFmaThemeOnce(this)
         TypingLog.init(this)
         PersonalAutocorrect.init(this)
+        TextShortcuts.init(this)
         PhraseMemory.init(this)
 
         val filter = IntentFilter(Intent.ACTION_USER_UNLOCKED)
@@ -646,6 +648,7 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         latinIMELegacy.onStartInputView(info, restarting)
         val keyboard = KeyboardSwitcher.getInstance().keyboard
         PersonalAutocorrect.onStartField(info, packageName)
+        TextShortcuts.onStartField(info, packageName)
         PhraseMemory.onStartField(info, packageName)
         // Also catches Spanish added later in settings; a cheap check once it is done
         BundledModels.installIfNeeded(this)

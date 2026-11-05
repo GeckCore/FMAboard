@@ -786,7 +786,7 @@ class ImportResourceActivity : ComponentActivity() {
                 }
 
                 if(item.v.config == null) {
-                    Text("Error parsing theme:\n" + (item.v.error ?: "?"))
+                    Text("No se ha podido leer el tema:\n" +(item.v.error ?: "?"))
 
                     Button(onClick = {
                         finish()

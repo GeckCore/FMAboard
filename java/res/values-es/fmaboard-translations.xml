@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FMAboard: Spanish for the settings texts the original keyboard had not translated yet -->
+<resources>
+    <string name="action_clipboard_manager_search">Buscar en el portapapeles…</string>
+    <string name="action_clipboard_manager_enter_your_search">Escribe lo que buscas…</string>
+    <string name="action_clipboard_manager_no_clips_found">No hay resultados</string>
+
+    <string name="morekey_settings_backspace_title">Tecla de borrar</string>
+    <string name="morekey_settings_backspace_hold_delete_words">Mantener para borrar palabras</string>
+    <string name="morekey_settings_backspace_swipe_to_delete">Deslizar para borrar</string>
+    <string name="morekey_settings_backspace_swipe_to_delete_off">Desactivado</string>
+    <string name="morekey_settings_backspace_swipe_to_delete_characters">Letras</string>
+    <string name="morekey_settings_backspace_swipe_to_delete_words">Palabras</string>
+    <string name="morekey_settings_spacebar_title">Barra espaciadora</string>
+    <string name="morekey_settings_spacebar_swipe_shortcut">Deslizar</string>
+    <string name="morekey_settings_spacebar_swipe_shortcut_off">Desactivado</string>
+    <string name="morekey_settings_spacebar_swipe_shortcut_cursor">Mover el cursor</string>
+    <string name="morekey_settings_spacebar_swipe_shortcut_language">Cambiar de idioma</string>
+    <string name="morekey_settings_spacebar_hold_shortcut">Mantener pulsada</string>
+    <string name="morekey_settings_spacebar_hold_shortcut_cursor">Mover el cursor</string>
+    <string name="morekey_settings_spacebar_hold_shortcut_language">Cambiar de idioma</string>
+
+    <string name="theme_settings_add_new_theme">Añadir tema</string>
+    <string name="theme_settings_add_new_theme_question">¿Crear un tema a partir de una imagen o añadir un tema descargado (ZIP)?</string>
+    <string name="theme_settings_visit_theme_store">Ver más temas en internet</string>
+
+    <string name="swipe_settings_enable_swipe_typing_subtitle">Desliza de una tecla a otra para escribir palabras.</string>
+    <string name="swipe_settings_sensitive_swipe">Más sensibilidad</string>
+    <string name="swipe_settings_sensitive_swipe_subtitle">El deslizamiento se reconoce más a menudo</string>
+    <string name="swipe_settings_kasroz">KASROZ</string>
+    <string name="swipe_settings_kasroz_subtitle">La mejor distribución de teclado para escribir deslizando</string>
+    <string name="swipe_settings_suggest_mode">Barra de sugerencias</string>
+    <string name="swipe_settings_suggest_mode_tags">mostrar 3 sugerencias, palabra usada, palabra aceptada, palabra principal, 3 alternativas, escritura deslizando, swipe, swype, centro, otras palabras</string>
+    <string name="swipe_settings_suggest_mode_top4_title">3 alternativas</string>
+    <string name="swipe_settings_suggest_mode_top3_title">2 alternativas</string>
+    <string name="swipe_settings_suggest_mode_used_word">Principal</string>
+    <string name="swipe_settings_suggest_mode_alternative_word_1">Alt. 1</string>
+    <string name="swipe_settings_suggest_mode_alternative_word_2">Alt. 2</string>
+    <string name="swipe_settings_suggest_mode_alternative_word_3">Alt. 3</string>
+    <string name="swipe_settings_miscellaneous_title">Otros</string>
+    <string name="swipe_settings_configure_shortcuts">Gestos</string>
+    <string name="swipe_settings_configure_shortcuts_subtitle">Configura los gestos de la barra espaciadora y de la tecla de borrar en los ajustes de pulsación larga</string>
+    <string name="swipe_settings_show_unsupported">Mostrar ajustes no compatibles…</string>
+    <string name="swipe_settings_use_old_swipe">Usar el algoritmo antiguo</string>
+    <string name="swipe_settings_use_old_swipe_subtitle_short">El algoritmo antiguo es muy impreciso y no se recomienda.</string>
+    <string name="swipe_settings_use_old_swipe_subtitle">El algoritmo antiguo es muy impreciso y no se recomienda. Si necesitas usarlo, cuéntanos por qué en GitHub. Esta opción desaparecerá en el futuro.</string>
+
+    <string name="voice_input_settings_builtin_disabled_notice2">Usando un motor externo: %s</string>
+    <string name="voice_input_settings_backend_system">Motor externo</string>
+    <string name="voice_input_settings_backend_system_internal">Ninguno (el incluido)</string>
+    <string name="voice_input_settings_backend_system_external_warning">Aviso: la app %s grabará tu voz y puede enviarla a sus servidores; no está cubierta por nuestra política de privacidad.</string>
+    <string name="voice_input_settings_backend_system_confirm">¿Usar %s para el dictado por voz?</string>
+    <string name="voice_input_settings_backend_system_confirm_yes">Cambiar</string>
+    <string name="voice_input_settings_backend_system_confirm_no">Cancelar</string>
+    <string name="voice_input_settings_animate_bubble">Animaciones</string>
+    <string name="voice_input_settings_animate_bubble_subtitle">Muestra una burbuja que reacciona a tu voz</string>
+
+    <string name="chinese_setting_search_tags">chino, rime</string>
+    <plurals name="personal_dictionary_language_word_count">
+        <item quantity="one">%1$s palabra</item>
+        <item quantity="other">%1$s palabras</item>
+    </plurals>
+    <string name="prefs_block_slurs_title">Bloquear insultos ofensivos</string>
+    <string name="prefs_block_slurs_summary">Por ahora solo afecta al inglés</string>
+    <string name="important_notice_suggest_contact_names">¿Sugerir nombres de contactos? Toca para más información.</string>
+</resources>

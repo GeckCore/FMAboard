@@ -79,7 +79,8 @@ object TypingLogStore {
 
     fun append(stream: Stream, line: String) {
         executor.execute {
-            pending.add(stream to line)
+            // Whatever a text shortcut wrote (an address, account details) is never logged
+            pending.add(stream to TextShortcuts.redact(line))
             if (pending.size >= FLUSH_EVERY_EVENTS) flushNow()
         }
     }

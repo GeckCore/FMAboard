@@ -1,6 +1,7 @@
 package org.futo.inputmethod.engine.general
 
 import org.futo.inputmethod.latin.fmaboard.PersonalAutocorrect
+import org.futo.inputmethod.latin.fmaboard.TextShortcuts
 import android.os.Build
 import android.os.Looper
 import android.util.Log
@@ -424,7 +425,8 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
         val words = unfilteredWords?.let { suggestionBlacklist.filterBlacklistedSuggestions(it) }
             ?: SuggestedWords.getEmptyInstance()
         // FMAboard: personal autocorrect rules learned from the user's own corrections
-        PersonalAutocorrect.adjust(words)
+        // and text shortcuts ("dir" -> your address), which go first
+        if (!TextShortcuts.adjust(words)) PersonalAutocorrect.adjust(words)
 
         // If any blacklisted learned words are here, we must unlearn them
         val wordsToUnlearn = unfilteredWords.mSuggestedWordInfoList
