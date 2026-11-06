@@ -170,13 +170,20 @@ open class InputMethodServiceCompose : InputMethodService(), LifecycleOwner, Vie
         mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
 
+    // FMAboard: whether the keyboard is on screen, for onComputeInsets
+    protected var imeWindowShown = false
+
     override fun onWindowShown() {
         super.onWindowShown()
+        imeWindowShown = true
+        window?.window?.decorView?.requestLayout()
         mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
     }
 
     override fun onWindowHidden() {
         super.onWindowHidden()
+        imeWindowShown = false
+        window?.window?.decorView?.requestLayout()
         mLifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     }
 
@@ -785,6 +792,15 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         }
 
         val viewHeight = composeView!!.height
+        // FMAboard: while hidden, say the keyboard takes no space. Then showing it again is a
+        // real change of size, which apps that measure it with a hidden window need to notice.
+        if (!imeWindowShown) {
+            outInsets!!.contentTopInsets = viewHeight
+            outInsets.visibleTopInsets = viewHeight
+            outInsets.touchableInsets = Insets.TOUCHABLE_INSETS_REGION
+            outInsets.touchableRegion.setEmpty()
+            return
+        }
         val size = size.value ?: return
         latinIMELegacy.setInsets(outInsets!!.apply {
             when(size) {
