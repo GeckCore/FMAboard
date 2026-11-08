@@ -299,6 +299,11 @@
                 android:resource="@xml/fmaboard_file_paths" />
         </provider>
 
+        <!-- FMAboard: expire unpinned clipboard history even when the keyboard is closed. -->
+        <service android:name="org.futo.inputmethod.latin.uix.actions.clipboard.ClipboardCleanupJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false" />
+
         <!-- FMAboard: periodic backup to the file the person picked (Drive, OneDrive...) -->
         <service android:name="org.futo.inputmethod.latin.fmaboard.CloudBackupJob"
             android:permission="android.permission.BIND_JOB_SERVICE"

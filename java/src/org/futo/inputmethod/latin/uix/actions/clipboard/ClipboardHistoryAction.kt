@@ -42,6 +42,7 @@ import org.futo.inputmethod.latin.fmaboard.ScreenshotOffer
 import org.futo.inputmethod.latin.fmaboard.StickerSend
 import org.futo.inputmethod.latin.fmaboard.ClipboardNoteEditor
 import org.futo.inputmethod.latin.fmaboard.ClipboardNotes
+import org.futo.inputmethod.latin.fmaboard.ClipboardRetention
 import org.futo.inputmethod.latin.fmaboard.LinkDownload
 import org.futo.inputmethod.latin.fmaboard.OcrCapture
 import org.futo.inputmethod.latin.fmaboard.TypingLog
@@ -96,6 +97,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -145,6 +148,7 @@ import org.futo.inputmethod.latin.uix.settings.userSettingToggleDataStore
 import org.futo.inputmethod.latin.uix.theme.Typography
 import java.io.File
 import java.security.MessageDigest
+import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
 
 val ClipboardHistoryEnabled = SettingsKey(
@@ -159,7 +163,7 @@ val ClipboardHistoryItemsToKeep = SettingsKey(
 
 val ClipboardHistoryTimeToKeep = SettingsKey(
     intPreferencesKey("clipboard_history_time_to_keep"),
-    14 * 24
+    ClipboardRetention.DEFAULT_HOURS
 )
 
 val ClipboardHistoryUnpinnedFileMbToKeep = SettingsKey(
@@ -528,7 +532,11 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
 
     companion object {
         val onClipboardImportedFlow = MutableSharedFlow<File>()
+        // FMAboard: the background job must update the live history when it exists.
+        internal var activeInstance: WeakReference<ClipboardHistoryManager>? = null
     }
+
+    private var expiryJob: Job? = null
 
     private val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
@@ -710,6 +718,15 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
         }
 
     init {
+        activeInstance = WeakReference(this)
+        ClipboardCleanup.schedule(context)
+        // FMAboard: expire clips even if the keyboard stays open for a long time.
+        expiryJob = coroutineScope.launch {
+            while (isActive) {
+                delay(60_000L)
+                if (clipboardLoaded) pruneOldItems()
+            }
+        }
         coroutineScope.launch {
             loadClipboard()
 
@@ -741,12 +758,14 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
     }
 
     suspend fun pruneOldItems() = withContext(Dispatchers.Main) {
-        val numHoursToKeep = context.getSetting(ClipboardHistoryTimeToKeep)
+        if (!clipboardLoaded) return@withContext
+        val before = clipboardHistory.toList()
+        val numHoursToKeep = ClipboardCleanup.retentionHours(context)
         val numItemsToKeep = context.getSetting(ClipboardHistoryItemsToKeep)
         val megabytesToKeep = context.getSetting(ClipboardHistoryUnpinnedFileMbToKeep)
-        val minimumTimestamp = System.currentTimeMillis() - (numHoursToKeep * 60L * 60L * 1000L)
+        val now = System.currentTimeMillis()
         clipboardHistory.removeAll {
-            (!it.pinned) && (it.timestamp < minimumTimestamp)
+            ClipboardRetention.isExpired(it.timestamp, it.pinned, now, numHoursToKeep)
         }
 
         // Remove duplicates of entries, if any appeared
@@ -803,6 +822,8 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
                 it.delete()
             }
         }
+        // FMAboard: pruning used to affect memory only; persist the deletion as well.
+        if (before != clipboardHistory.toList()) saveClipboard()
     }
 
     private fun migrateLegacyClipboardBak() {
@@ -835,9 +856,18 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
 
         return coroutineScope.launch(context = ClipboardIOContext) {
             try {
-                val list = withContext(Dispatchers.Main) { clipboardHistory.toList() }
+                val hours = ClipboardCleanup.retentionHours(context)
+                val list = withContext(Dispatchers.Main) {
+                    val now = System.currentTimeMillis()
+                    clipboardHistory.removeAll {
+                        ClipboardRetention.isExpired(it.timestamp, it.pinned, now, hours)
+                    }
+                    clipboardHistory.toList()
+                }
                 val json = Json.encodeToString(list).toByteArray()
 
+                // FMAboard: scrub old recovery files even when the live list is unchanged.
+                ClipboardCleanup.pruneStoredHistory(context, hours, includePrimary = false, liveEntries = list)
                 if(list == lastClipboardWritten) return@launch
 
                 // Once every day only
@@ -846,12 +876,23 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
 
 
                 withContext(NonCancellable) {
-                    synchronized(atomicClipboardFile) {
+                    synchronized(ClipboardCleanup.fileLock) {
                         migrateLegacyClipboardBak()
 
                         // Produce a backup
                         if (clipboardFile.exists() && shouldBackup) {
-                            val existingData = atomicClipboardFile.readFully()
+                            val existingData = try {
+                                val currentByContent = list.associateBy { it.text to it.backingFile }
+                                Json.encodeToString(decodeData(atomicClipboardFile.readFully()).map { old ->
+                                    val live = currentByContent[old.text to old.backingFile]
+                                    if (live != null) old.copy(pinned = live.pinned, timestamp = live.timestamp)
+                                    else old
+                                }.filterNot {
+                                    ClipboardRetention.isExpired(it.timestamp, it.pinned, System.currentTimeMillis(), hours)
+                                }).toByteArray()
+                            } catch (_: Exception) {
+                                byteArrayOf()
+                            }
 
                             val isValid = try {
                                 decodeData(existingData).isNotEmpty()
@@ -956,11 +997,13 @@ ${if(clipboardFileSwap.exists()) { clipboardFileSwap.readText() } else { "File d
         }
 
         try {
+            // FMAboard: changing a default alone does not update a saved 14-day setting.
+            val hours = ClipboardCleanup.retentionHours(context)
             if(clipboardSetting == false) {
                 deleteClipboard()
             } else if (clipboardFile.exists()) {
                 migrateLegacyClipboardBak()
-                val data = synchronized(atomicClipboardFile) {
+                val data = synchronized(ClipboardCleanup.fileLock) {
                     try {
                         decodeFile(clipboardFile)
                     } catch(e: Exception) {
@@ -973,14 +1016,19 @@ ${if(clipboardFileSwap.exists()) { clipboardFileSwap.readText() } else { "File d
                     }
                 }
 
-                clipboardHistory.clear()
-                clipboardHistory.addAll(data)
-                pruneOldItems()
+                ClipboardCleanup.pruneStoredHistory(context, hours, includePrimary = false, liveEntries = data)
+
+                withContext(Dispatchers.Main) {
+                    clipboardHistory.clear()
+                    clipboardHistory.addAll(data)
+                }
             } else {
                 clipboardHistory.add(DefaultClipboardEntry)
             }
 
             clipboardLoaded = true
+            pruneOldItems()
+            saveClipboard()
             clipboardIOFailureReason = ""
             clipboardIOFailure.value = false
         } catch (e: Exception) {
@@ -990,14 +1038,6 @@ ${if(clipboardFileSwap.exists()) { clipboardFileSwap.readText() } else { "File d
 
             reportError("loadClipboard", e)
         }
-    }
-
-    fun onPaste(item: ClipboardEntry) {
-        val itemPos = clipboardHistory.indexOf(item).coerceAtLeast(0)
-        clipboardHistory.removeAll { it == item }
-        clipboardHistory.add(itemPos, item.copy(timestamp = System.currentTimeMillis()))
-
-        saveClipboard()
     }
 
     fun onTogglePin(item: ClipboardEntry) {
@@ -1090,6 +1130,8 @@ ${if(clipboardFileSwap.exists()) { clipboardFileSwap.readText() } else { "File d
     }
 
     override fun close() {
+        expiryJob?.cancel()
+        if (activeInstance?.get() === this) activeInstance = null
         clipboardManager.removePrimaryClipChangedListener(primaryClipChangedListener)
         screenshotHelper.onDestroy()
     }
@@ -1421,7 +1463,7 @@ val ClipboardHistoryAction = Action(
                         ClipboardImagePanel(file,
                             onPaste = {
                                 pasteImageClip(manager, context, entry)
-                                clipboardHistoryManager.onPaste(entry)
+                                // FMAboard: pasting does not renew the clip's lifetime.
                                 manager.performHapticAndAudioFeedback(Constants.CODE_OUTPUT_TEXT, view)
                                 openedEntry.value = null
                             },
@@ -1442,7 +1484,6 @@ val ClipboardHistoryAction = Action(
                             onPaste = { text ->
                                 manager.typeText(text)
                                 TypingLog.onPaste(text)
-                                clipboardHistoryManager.onPaste(entry)
                                 manager.performHapticAndAudioFeedback(Constants.CODE_OUTPUT_TEXT, view)
                                 openedEntry.value = null
                             },
@@ -1579,7 +1620,6 @@ val ClipboardHistoryAction = Action(
                                             pasteImageClip(manager, context, it)
                                         }
 
-                                        clipboardHistoryManager.onPaste(it)
                                         manager.performHapticAndAudioFeedback(Constants.CODE_OUTPUT_TEXT, view)
                                     }, onRemove = {
                                         if(context.getSetting(ClipboardSkipDeleteConfirmation) && !it.pinned) {

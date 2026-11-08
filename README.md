@@ -25,6 +25,10 @@ Es un proyecto personal, sin ánimo de lucro, de **FMA**.
 - **Portapapeles mejorado**: notas propias, búsqueda que ignora tildes, borrar varios clips a la vez, capturas de pantalla e imágenes
   (pegar, sacar texto o hacer sticker), abrir enlaces, quitarles el rastreo (`utm_`, `fbclid`, `si`…)
   y abrir un chat de WhatsApp con un número sin guardarlo en contactos.
+  Los clips sin fijar caducan a las **24 horas** de copiarlos (también las imágenes); pegarlos no renueva el plazo.
+  Los fijados y las notas se conservan. Al quitar un fijado empieza un nuevo plazo de 24 horas.
+  La limpieza se comprueba al cargar el historial, mientras el teclado está activo y en segundo plano;
+  Android puede retrasar esta última si el móvil está en reposo. El plazo se puede cambiar en los ajustes del portapapeles.
 - **Dictado por voz** con el reconocimiento de voz del móvil (el de Google en la mayoría): entiende bien aunque hables rápido y el texto aparece mientras hablas. Con la IA activada, al terminar corrige ortografía, gramática y puntuación en un par de segundos. Sin conexión, usa el modelo de voz incluido.
 - **Traducir** para chatear en otro idioma (coreano, inglés, alemán…): tu mensaje se traduce al momento con Google Translate y lo pones con un toque; si una frase hecha no sale bien, «Traducir con IA» la entiende por el contexto. Con la IA, los mensajes de la otra persona aparecen en español. En automático usa el idioma de la otra persona.
 - **Atajos de texto**: escribe «/dir» y se pone tu dirección, «/mama» el número de tu madre… (con o sin símbolo delante). Se guardan solo en el móvil y lo que escriben nunca queda en el registro.
